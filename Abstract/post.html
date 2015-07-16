@@ -1,0 +1,1073 @@
+<script>
+
+var postId;
+var miniFeedList;
+var miniPinnedList;
+var isThisPostPinned;
+var Response_File_url = [];
+var Response_File = [];
+//Default by Top Posts
+
+
+
+//Create Response
+function createResponse(event){
+	event.preventDefault();
+	
+	$('#response_button_container').html("<i class='fa fa-circle-o-notch fa-spin fa-2x'></i>");
+	if ($('#response_file_uploader').val() != undefined){
+		var fileUploadControl = $("#response_file_uploader")[0];
+		var fullname = $("#response_file_uploader").val();
+		fullname = fullname.replace(/\s+/g, ' ');
+		var n = fullname.lastIndexOf('\\');
+		fullname = fullname.replace(/\+/g, ' ');
+		fullname = fullname.substring(n + 1);
+		if (fileUploadControl.files.length > 0) {
+	 	 	var file = fileUploadControl.files[0];
+	  		var parseFile = new Parse.File(fullname, file);
+		}
+		//console.log(fullname);
+	}
+
+	var response_body = $('#response_box').val().replace(/\n/g, '<br/>');
+	//console.log(response_body);
+	var Response = Parse.Object.extend("Responses");
+	var response = new Response();
+	var query = new Parse.Query(Response);
+	query.include("Author");
+	response.set('Author', currentUser);
+	response.set('Body', response_body);
+	response.set('Attachment', parseFile);
+	response.set("Post",{
+		__type: "Pointer",
+		className: "Posts",
+		objectId: postId
+	});
+	response.save().then(function(response){
+		var Response_File_immediate;
+		var Response_File_url_immediate;
+		var dash = '-';
+		var text = "<li class = 'response_post_container' id = '" + response.id + "'>";
+			text += "<div class = 'response_date'>" + moment(new Date()).fromNow() + "</div>";
+			text += "<div class='response_body'>" + response_body + "</div>";
+			if(response.has("Attachment")){
+				Response_File_url_immediate = response.get("Attachment").url();	
+				Response_File_immediate = response.get("Attachment").name();
+				Response_File_immediate = Response_File_immediate.split(dash).pop();
+				text += "<div class='response_file_container'><p style='font-weight:700;margin:0; padding:8px 0px 8px 0px'> Attachment: <a  style='font-weight:500' href='" + Response_File_url_immediate + "' class='pointer green' target='_blank'>"  + Response_File_immediate  +  "</a></div>";
+			}
+			text += "<div class='response_bottom'>"
+				text += "<span><a class='author_link pointer' id='" + response.get("Author").id + "'>" + response.get("Author").get("F_Name") + " " + response.get("Author").get("L_Name") + "</a></span>";
+				text += "<span><input type ='submit' value='Delete' class ='remove_response pointer underline'/></span>";
+			text += "</div>";
+		text += "</li>";
+		$('#responses_list').prepend(text);
+		$('.deletable').remove();
+		$('#file_label').html("Attach a file");
+		$('#file_label').addClass('pointer');
+		$('#response_box').val('');
+		$('#response_button_container').html("<input type='submit' value='Respond' id ='response_post'/>");
+		$('#response_file_uploader').val("");
+
+		//Update right column count
+		var oldCount = $('#' + postId).find('.post_mini_count').text();
+		oldCount = parseInt(oldCount.split(" ")[0]);
+		oldCount = oldCount + 1;
+		var newCount = oldCount + " Responses";
+		$('#' + postId).find('.post_mini_count').html(newCount);
+	});
+
+	var Point = Parse.Object.extend("Posts");
+	var point = new Point();
+	point.id = postId;
+	point.increment("Responses");
+	point.save();
+
+}
+
+//Load Feed Posts
+function loadFeedPosts(){
+	postIds = [];
+	types = [];
+	author_first_names = [];
+	author_last_names = [];
+	titles = [];
+	created_dates = [];
+	response_counts = [];
+	page_views = [];
+	pinned = [];
+	//Make Parse Connection
+	var Posts = Parse.Object.extend("Posts");
+	var query = new Parse.Query(Posts);
+	query.include("Author");
+	query.descending("Responses");
+	query.find().then(function(results){
+		for (i = 0; i < results.length; i++) {
+			postIds.push(results[i].id);
+			types.push(results[i].get("Type"));
+			author_first_names.push(results[i].get("Author").get("F_Name"));
+			author_last_names.push(results[i].get("Author").get("L_Name"));
+			titles.push(results[i].get("Title"));
+			created_dates.push(results[i].createdAt);
+			response_counts.push(results[i].get("Responses"));
+			page_views.push(results[i].get("Page_Views"));
+			pinned.push(results[i].get("Pinned"));
+		}
+	}).then(function display(){
+		var text = "<ul class='list'>";
+		for (i = 0; i < types.length; i++) {
+			if(pinned[i] == 0){
+				//Job Posts Color
+				if(types[i] == "Job"){
+					text += "<li class='post_mini job_color_border_mini pointer' id='" + postIds[i] + "'>";
+				}
+				//Event Posts Color
+				if(types[i] == "Event"){
+					text += "<li class='post_mini event_color_border_mini pointer' id='" + postIds[i] + "'>";
+				}
+				//Resource Posts Color
+				if(types[i] == "Resource"){
+					text += "<li class='post_mini resource_color_border_mini pointer' id='" + postIds[i] + "'>";
+				}
+				//Question Posts Color
+				if(types[i] == "Question"){
+					text += "<li class='post_mini question_color_border_mini pointer' id='" + postIds[i] + "'>";
+				}
+						text += "<div class='orderTime' style='display:none'>" + convertSeconds(created_dates[i]) + "</div>";
+						text += "<div>";
+							text += "<span class='post_mini_date mini'>" + moment(created_dates[i]).fromNow() + "</span>";
+						text += "</div>";
+						text += "<span class='post_mini_title mini'>" + titles[i] + "</span>";
+						text += "<br>";
+						text += "<span class='post_mini_count mini'>" + response_counts[i] + " Responses</span>";
+					text += "</li>";
+			}
+		}
+		text += "</ul>";
+		$('.all_others_container').html(text);
+	}).then(function pinnedPosts(){
+		//Pinned posts are in a separate function so that orderAble does not affect them.
+		var text = "<ul class='list'>";
+		for (i = 0; i < types.length; i++) {
+			if(pinned[i] == 1){
+				//Job Posts Color
+				if(types[i] == "Job"){
+					text += "<li class='post_mini job_color_border_mini pinned_bg_job pointer' id='" + postIds[i] + "'>";
+				}
+				//Event Posts Color
+				if(types[i] == "Event"){
+					text += "<li class='post_mini event_color_border_mini pinned_bg_event pointer' id='" + postIds[i] + "'>";
+				}
+				//Resource Posts Color
+				if(types[i] == "Resource"){
+					text += "<li class='post_mini resource_color_border_mini pinned_bg_resource pointer' id='" + postIds[i] + "'>";
+				}
+				//Question Posts Color
+				if(types[i] == "Question"){
+					text += "<li class='post_mini question_color_border_mini pinned_bg_question pointer' id='" + postIds[i] + "'>";
+				}
+						text += "<div class='orderTime' style='display:none'>" + convertSeconds(created_dates[i]) + "</div>";
+						text += "<div>";
+							text += "<span class='post_mini_date mini'>" + moment(created_dates[i]).fromNow() + "</span>";
+						text += "</div>";
+						text += "<span class='post_mini_title mini'><i class='fa fa-bell-o'></i> " + titles[i] + "</span>";
+						text += "<br>";
+						text += "<span class='post_mini_count mini'>" + response_counts[i] + " Responses</span>";
+					text += "</li>";
+			}
+		}
+		text += "</ul>";
+		$('.pinned_container').html(text);
+	}).then(function orderAble(){
+		var options = {
+    		valueNames: [ 'orderTime', 'post_mini_count' ]
+		};
+		miniFeedList = new List('mini_all', options);
+		miniPinnedList = new List('mini_pinned', options);
+	});
+}
+
+//Order By
+function orderByTop(){
+	miniFeedList.sort('post_mini_count', { order: "desc" });
+	miniPinnedList.sort('post_mini_count', { order: "desc" });
+	$('#top a').css('text-decoration', 'none');
+	$('#top_id').css('text-decoration', 'underline');
+}
+function orderByRecent(){
+	miniFeedList.sort('orderTime', { order: "desc" });
+	miniPinnedList.sort('orderTime', { order: "desc" });
+	$('#top a').css('text-decoration', 'none');
+	$('#recent_id').css('text-decoration', 'underline');
+}
+//Sort By
+function sortByAll(){
+	//Show
+	$('.event_color_border_mini').show();
+	$('.job_color_border_mini').show();
+	$('.question_color_border_mini').show();
+	$('.resource_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#all_id').css('text-decoration', 'underline');
+}
+function sortByResources(){
+	//Hide
+	$('.event_color_border_mini').hide();
+	$('.job_color_border_mini').hide();
+	$('.question_color_border_mini').hide();
+	//Show
+	$('.resource_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#resources_id').css('text-decoration', 'underline');
+}
+function sortByQuestions(){
+	//Hide
+	$('.event_color_border_mini').hide();
+	$('.job_color_border_mini').hide();
+	$('.resource_color_border_mini').hide();
+	//Show
+	$('.question_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#questions_id').css('text-decoration', 'underline');
+}
+function sortByJobs(){
+	//Hide
+	$('.event_color_border_mini').hide();
+	$('.question_color_border_mini').hide();
+	$('.resource_color_border_mini').hide();
+	//Show
+	$('.job_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#jobs_id').css('text-decoration', 'underline');
+}
+function sortByEvents(){
+	//Hide
+	$('.resource_color_border_mini').hide();
+	$('.job_color_border_mini').hide();
+	$('.question_color_border_mini').hide();
+	//Show
+	$('.event_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#events_id').css('text-decoration', 'underline');
+}
+
+//Get the post
+function loadMainPost(postId){
+
+	//Delete any previous embed containers
+	$('#embedContainer_post').remove();
+	var checkMe;
+
+	var geocoder;
+	var map;
+	var title;
+	var type;
+	var body;
+	var author_first_name;
+	var author_last_name;
+	var createdAt;
+	var authorId;
+	var underscore = '_';
+
+	//Question
+	var Answer1;
+	var Answer2;
+	var Answer3;
+	var Answer4;
+	var Answer5;
+	var Answer6;
+	var Answer7;
+	var Answer8;
+	var Answer9;
+	var Answer10;
+	var Answer1_Response;
+	var Answer2_Response;
+	var Answer3_Response;
+	var Answer4_Response;
+	var Answer5_Response;
+	var Answer6_Response;
+	var Answer7_Response;
+	var Answer8_Response;
+	var Answer9_Response;
+	var Answer10_Response;
+	var Has_Answered_Question = [];
+
+	//Job
+	var Job_Skills = [];
+	var Job_Location;
+	var Job_Experience;
+	var Job_Starting;
+	var Job_Company;
+	var Job_Time;
+
+	//Event
+	var Event_Reoccuring;
+	var Event_Where;
+	var Event_Start1;
+	var Event_End1;
+	var Event_Price;
+
+	//Resource
+	var Resource_File;
+	var Resource_File_url;
+	var dash = '-';
+	var Posts = Parse.Object.extend("Posts");
+	var query = new Parse.Query(Posts);
+	query.include("Author");
+	query.get(postId).then(function(results){
+		title = results.get("Title");
+		type = results.get("Type");
+		body = results.get("Body");
+		author_first_name = results.get("Author").get("F_Name");
+		author_last_name = results.get("Author").get("L_Name");
+		authorId = results.get("Author").id;
+		createdAt = results.createdAt;
+		isThisPostPinned = results.get("Pinned");
+		body1=body;
+		
+		if (type == "Resource"){
+			if(results.has("Resource_File")){
+				Resource_File_url = results.get("Resource_File").url();	
+				Resource_File = results.get("Resource_File").name();
+				Resource_File = Resource_File.split(dash).pop();
+			}
+		}
+
+		if (type == "Question"){
+			if (results.has("Answer1")){Answer1 = results.get("Answer1"); Answer1_Response = results.get("Answer1_Response");}
+			if (results.has("Answer2")){Answer2 = results.get("Answer2"); Answer2_Response = results.get("Answer2_Response");}
+			if (results.has("Answer3")){Answer3 = results.get("Answer3"); Answer3_Response = results.get("Answer3_Response");}
+			if (results.has("Answer4")){Answer4 = results.get("Answer4"); Answer4_Response = results.get("Answer4_Response");}
+			if (results.has("Answer5")){Answer5 = results.get("Answer5"); Answer5_Response = results.get("Answer5_Response");}
+			if (results.has("Answer6")){Answer6 = results.get("Answer6"); Answer6_Response = results.get("Answer6_Response");}
+			if (results.has("Answer7")){Answer7 = results.get("Answer7"); Answer7_Response = results.get("Answer7_Response");}
+			if (results.has("Answer8")){Answer8 = results.get("Answer8"); Answer8_Response = results.get("Answer8_Response");}
+			if (results.has("Answer9")){Answer9 = results.get("Answer9"); Answer9_Response = results.get("Answer9_Response");}
+			if (results.has("Answer10")){Answer10 = results.get("Answer10"); Answer10_Response = results.get("Answer10_Response");}
+			Has_Answered_Question = results.get("Has_Answered_Question");
+
+		}
+		if (type == "Event"){
+			Event_Reoccuring = results.get("Event_Reoccuring");
+			Event_Price = results.get("Event_Price");
+			Event_Start1 = results.get("Event_Start");
+			Event_End1 = results.get("Event_End");
+			Event_Where = results.get("Event_Where");
+		}
+		if (type == "Job"){
+			Job_Location = results.get("Job_Location");
+			Job_Experience = results.get("Job_Experience");
+			Job_Starting = results.get("Job_Starting");
+			Job_Company = results.get("Job_Company");
+			Job_Time = results.get("Job_Time");
+			Job_Time = Job_Time.split(underscore).join(" ");
+			Job_Skills = results.get("Job_Skills");
+				
+			}
+			
+		
+	}).then(function displayPost(){
+		var text = "<div id='title_container'>";
+			text += "<span id='title_span'>" + title + "</span>";
+			text +=	"<span id='date_span'>" + moment(createdAt).fromNow() + "</span>";
+		text += "</div>";
+		text += "<div id='author_container'>";
+				text +=	"<a class='author_link pointer' style='font-size:15px' id='" + authorId + "'>" + author_first_name + " " + author_last_name + "</a>";
+		text += "</div>";
+		text += "<div id='buttons_container'>";
+			//Author can unpin post 
+			//Only display if post is pinned
+			//and current viewer is the author
+			if (currentUserId == authorId && isThisPostPinned == 1){
+				text += "<input type='button' id='unpin_button' class='pointer' value='Unpin' onclick = 'unpin_this()' />";
+			}
+			//Author can delete their post
+			if (currentUserId == authorId){
+				text += "<input type='button' id='delete_button' class='pointer' value='Delete'/>";
+			}
+		text += "</div>";
+		//Body
+		text += "<p class = 'body_displayed'>" + body + "</p>";	
+			
+		
+		//Specifics
+		if (type == "Resource" && Resource_File != undefined){
+			//console.log(Resource_File_url);
+			text += "<p style='font-weight:700;margin:0; padding:16px 0px 16px 0px'> Attachment: <a style='font-weight:500' href='" + Resource_File_url + "' class='pointer green' target='_blank'>"  + Resource_File  +  "</a></p>";
+		}
+		if (type == "Question" && Answer1.length > 0 && Answer2.length > 0){
+			text += "<div id='radio_options'><form id = 'question_form' return false;'>";
+			if (Answer1.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value='Answer1_Response' checked='checked' ><p class='answer_text'>" + Answer1 + "</p><br>";}
+			if (Answer2.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value='Answer2_Response'><p class='answer_text'>" + Answer2 + "</p><br>" ;}
+			if (Answer3.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value='Answer3_Response'><p class='answer_text'>" + Answer3 + "</p><br>";}
+			if (Answer4.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value='Answer4_Response'><p class='answer_text'>" + Answer4 + "</p><br>";}
+			if (Answer5.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value='Answer5_Response'><p class='answer_text'>" + Answer5 + "</p><br>";}
+			if (Answer6.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value=' Answer6_Response'><p class='answer_text'>" + Answer6 + "</p><br>";}
+			if (Answer7.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value='Answer7_Response'><p class='answer_text'>" + Answer7 + "</p><br>";}
+			if (Answer8.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value='Answer8_Response'><p class='answer_text'>" + Answer8 + "</p><br>";}
+			if (Answer9.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value='Answer9_Response'><p class='answer_text'>" + Answer9 + "</p><br>";}
+			if (Answer10.length > 0){text += "<input type='radio' name='answer_radio' class='answers_to_question' value='Answer10_Response'><p class='answer_text'>" + Answer10 + "</p><br>";}
+			text += "<br><input class='' id='submitAnswer' type='submit' value='Submit your Answer'></input>"
+			text += "</form></div>";
+			text += "<canvas id='answersChart'></canvas>";
+		}
+		if (type == "Event"){
+
+			var start_date_only = moment(Event_Start1).format("L");  
+			var start_time_only = moment(Event_Start1).format("h:mm A");
+			var end_date_only = moment(Event_End1).format("L");
+			var end_time_only = moment(Event_End1).format("h:mm A");
+			Event_Start1 = moment(Event_Start1).format("dddd, MMMM Do");
+			Event_End1 = moment(Event_End1).format("dddd, MMMM Do");
+			text += "<div style='padding-top:16px'>";
+				//Price
+				if (Event_Price == 0){
+					//Free
+					text += "<div id = 'price_container'><i class='fa fa-usd event_icon'/>Free</div>";
+				}else{
+					//Not Free
+					text += "<div id = 'price_container'><i class='fa fa-usd event_icon'/>" + Event_Price + "</div>";
+				}
+				//Date
+				text += "<div id='time_container'>";
+					text += "<i class='fa fa-clock-o event_icon' style='vertical-align:super'/>";
+					text += "<div style='display:inline-block;'>";
+					if(start_date_only != end_date_only){
+						text += "<div class='when_container'>" + Event_Start1 + " at " + start_time_only + " to " + Event_End1 + " at " + end_time_only + "</div>";
+					}else{
+						text += "<div class='when_container'>" + Event_Start1 + " at " + start_time_only + " to " + end_time_only +  "</div>";
+					}
+					if(Event_Reoccuring != undefined && Event_Reoccuring.length > 0){
+						text += "<div id = 'reoccuring_container'>" + Event_Reoccuring + "</div>";
+					}
+					text += "</div>";
+				text += "</div>";
+				//Address
+				text += "<div id ='address_container'><i class='fa fa-map-marker event_icon'/>" + Event_Where + "</div>";
+				//Map
+				text += "<div id = 'map-canvas' style='margin:0 auto; width:100%; margin-top:20px;margin-bottom:10px'></div>";
+			text += "</div>"
+		}
+		if (type == "Job"){
+			text += "<div style='padding-top:16px'>";
+				text += "<div id='job_company_container'>";
+					text += "<i class='fa fa-map-marker event_icon' style='vertical-align:super'/>";
+					text += "<div style='display:inline-block;'>";
+						text += "<div id ='Job_Company_Name_Container'>" + Job_Company + "</div>";
+						text += "<div id='Job_Location_Container'>" + Job_Location + "</div>";	
+					text += "</div>"
+				text += "</div>"
+				text += "<div id='Job_Edu_Container'><i class='fa fa-graduation-cap event_icon' style='font-size: 1.25em;'></i>" + Job_Experience + "</div>";
+				text += "<div id='job_when_container'>";
+					text += "<i class='fa fa-clock-o event_icon' style='vertical-align:super'/>";
+					text += "<div style='display:inline-block;'>";
+						text += "<div id = 'Job_Time_Container'>" + Job_Time + "</div>";
+						text += "<div id='Job_Start_Container'> Begins " + moment(Job_Starting).format("dddd, MMMM Do") + "</div>";
+					text += "</div>";
+				text += "</div>";
+				text += "<div id = 'Job_Skills_Container'>";
+					text += "<p id='job_skills_label'><i class='fa fa-bolt event_icon'></i>Necessary Skills</p>";
+					text += "<ul class = 'Skills_List' style='margin-top:8px;text-align:justify;'>";
+					for(var i = 0; i < Job_Skills.length; i++ ){
+						text += "<li class='Job_Skill'>" + Job_Skills[i] + "</li>";
+					}
+					text += "</ul>";
+				text += "</div>";
+			text += "</div>";
+		}
+		$('.center_column_content').html(text);
+
+	}).then(function displayGraphics(){
+		if (type == "Event"){
+			/*function initialize(){
+				var mapCanvas = document.getElementById('map-canvas');
+				var mapOptions = {
+			        center: new google.maps.LatLng(45.5403, -79.5463),
+			        zoom: 8,
+			        mapTypeId: google.maps.MapTypeId.ROADMAP
+			    }
+			    var map = new google.maps.Map(mapCanvas, mapOptions)
+			}*/
+
+			function initialize() {
+  				geocoder = new google.maps.Geocoder();
+  				var latlng = new google.maps.LatLng(32.732408, -97.321657);
+  				var mapOptions = {
+    				zoom: 15,
+    				center: latlng
+  				}
+  				map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+			}
+
+			function codeAddress() {
+	  			geocoder.geocode( { 'address': Event_Where}, function(results, status) {
+		    		if (status == google.maps.GeocoderStatus.OK) {
+
+		      			map.setCenter(results[0].geometry.location);
+		      			var marker = new google.maps.Marker({
+		          			map: map,
+		          			position: results[0].geometry.location
+		      			});
+				    } else {
+				    	initialize();
+				    }
+				});
+			}
+	   		initialize();
+	   		codeAddress();
+   		}
+   		if (type == "Question"){
+   			if (Answer1.length > 0 && Answer2.length > 0){
+
+   				if (Has_Answered_Question.indexOf(currentUserId) > -1){
+   					//User has already voted
+   					//Disable Radio Buttons
+   					$('.answers_to_question').attr('disabled',true);
+   					$('#submitAnswer').attr('value', 'You have already voted').attr('disabled',true);
+   					$('#submitAnswer').css('cursor', 'initial');
+   					//Show Pie
+   					var ctx = $("#answersChart").get(0).getContext("2d");
+
+					var data = [
+						{
+						    value: Answer1_Response,
+						    color:"rgb(86,174,226)",
+						    label: Answer1
+						},
+						{
+						    value: Answer2_Response,
+						    color: "rgb(86,104,226)",
+						    label: Answer2
+						},
+						{
+							value: Answer3_Response,
+							color: "rgb(138,86,226)",
+							label: Answer3
+						},
+						{
+						    value: Answer4_Response,
+						    color: "rgb(207,86,226)",
+						    label: Answer4
+						},
+						{
+						    value: Answer5_Response,
+						    color: "rgb(226,86,174)",
+						    label: Answer5
+						},
+						{
+						    value: Answer6_Response,
+						    color: "rgb(226,86,104)",
+						    label: Answer6
+						},
+						{
+						    value: Answer7_Response,
+						    color: "rgb(226,137,86)",
+						    label: Answer7
+						},
+						{
+						    value: Answer8_Response,
+						    color: "rgb(226,207,86)",
+						    label: Answer8
+						},
+						{
+						    value: Answer9_Response,
+						    color: "rgb(174,226,86)",
+						    label: Answer9
+						},
+						{
+						    value: Answer10_Response,
+						    color: "rgb(104,226,86)",
+						    label: Answer10
+						}
+					]
+					var answersPieChart = new Chart(ctx).Pie(data, {
+
+						// Function - Will fire on animation progression.
+						//onAnimationProgress: function(){},
+
+						// Function - Will fire on animation completion.
+						//onAnimationComplete: function(){}
+							//Boolean - Whether we should show a stroke on each segment
+						segmentShowStroke : true,
+
+						//String - The colour of each segment stroke
+						segmentStrokeColor : "#f9f9f9",
+
+						//Number - The width of each segment stroke
+						segmentStrokeWidth : 2,
+
+						//Number - Amount of animation steps
+						animationSteps : 100,
+
+						//String - Animation easing effect
+						animationEasing : "easeOutSine",
+
+						//Boolean - Whether we animate scaling the Pie from the centre
+						animateScale : true,
+					});
+   				}else{
+   					//User has not voted
+   					$('#answersChart').hide();
+   					$('#submitAnswer').on('click', function submitAnswer(event){
+						event.preventDefault();
+
+						//Add User to Has_Voted array
+						Has_Answered_Question.push(currentUserId);
+
+						//log the answer
+						var user_chose = $(".answers_to_question:checked").val();
+						console.log(user_chose);
+						
+						//Update Post on DB
+						var Point = Parse.Object.extend("Posts");
+						var point = new Point();
+						point.id = postId;
+						point.set('Has_Answered_Question', Has_Answered_Question);
+						point.increment(user_chose);
+						point.save();
+
+						//Disable Buttons
+						$('.answers_to_question').attr('disabled',true);
+					   	$('#submitAnswer').attr('value', 'Thank you for voting').attr('disabled',true);
+					   	$('#submitAnswer').css('cursor', 'initial');
+
+					   	switch (user_chose){
+					   		//If the user chose Answer 1, incremement the count
+					   		case 'Answer1_Response':
+					   			Answer1_Response = Answer1_Response + 1;
+					   			break;
+					   		//If the user chose Answer 2, incremement the count
+					   		case 'Answer2_Response':
+					   			Answer2_Response = Answer2_Response + 1;
+					   			break;
+					   		//If the user chose Answer 3, incremement the count
+					   		case 'Answer3_Response':
+					   			Answer3_Response = Answer3_Response + 1;
+					   			break;
+					   		//If the user chose Answer 4, incremement the count
+					   		case 'Answer4_Response':
+					   			Answer4_Response = Answer4_Response + 1;
+					   			break;
+					   		//If the user chose Answer 5, incremement the count
+					   		case 'Answer5_Response':
+					   			Answer5_Response = Answer5_Response + 1;
+					   			break;
+					   		//If the user chose Answer 6, incremement the count
+					   		case 'Answer6_Response':
+					   			Answer6_Response = Answer6_Response + 1;
+					   			break;
+					   		//If the user chose Answer 7, incremement the count
+					   		case 'Answer7_Response':
+					   			Answer7_Response = Answer7_Response + 1;
+					   			break;
+					   		//If the user chose Answer 8, incremement the count
+					   		case 'Answer8_Response':
+					   			Answer8_Response = Answer8_Response + 1;
+					   			break;
+					   		//If the user chose Answer 9, incremement the count
+					   		case 'Answer9_Response':
+					   			Answer9_Response = Answer9_Response + 1;
+					   			break;
+					   		//If the user chose Answer 10, incremement the count
+					   		case 'Answer10_Response':
+					   			Answer10_Response = Answer10_Response + 1;
+					   			break;
+					   		default: 
+					   			console.log('This should never fire');
+					   	}
+
+						//Display Chart
+						$('#answersChart').show();
+						var ctx = $("#answersChart").get(0).getContext("2d");
+						var data = [
+							{
+							    value: Answer1_Response,
+							    color:"rgb(86,174,226)",
+							    label: Answer1
+							},
+							{
+							    value: Answer2_Response,
+							    color: "rgb(86,104,226)",
+							    label: Answer2
+							},
+							{
+								value: Answer3_Response,
+								color: "rgb(138,86,226)",
+								label: Answer3
+							},
+							{
+							    value: Answer4_Response,
+							    color: "rgb(207,86,226)",
+							    label: Answer4
+							},
+							{
+							    value: Answer5_Response,
+							    color: "rgb(226,86,174)",
+							    label: Answer5
+							},
+							{
+							    value: Answer6_Response,
+							    color: "rgb(226,86,104)",
+							    label: Answer6
+							},
+							{
+							    value: Answer7_Response,
+							    color: "rgb(226,137,86)",
+							    label: Answer7
+							},
+							{
+							    value: Answer8_Response,
+							    color: "rgb(226,207,86)",
+							    label: Answer8
+							},
+							{
+							    value: Answer9_Response,
+							    color: "rgb(174,226,86)",
+							    label: Answer9
+							},
+							{
+							    value: Answer10_Response,
+							    color: "rgb(104,226,86)",
+							    label: Answer10
+							}
+						]
+						var answersPieChart = new Chart(ctx).Pie(data, {
+
+							// Function - Will fire on animation progression.
+							//onAnimationProgress: function(){},
+
+							// Function - Will fire on animation completion.
+							//onAnimationComplete: function(){}
+								//Boolean - Whether we should show a stroke on each segment
+							segmentShowStroke : true,
+
+							//String - The colour of each segment stroke
+							segmentStrokeColor : "#f9f9f9",
+
+							//Number - The width of each segment stroke
+							segmentStrokeWidth : 2,
+
+							//Number - Amount of animation steps
+							animationSteps : 100,
+
+							//String - Animation easing effect
+							animationEasing : "easeOutSine",
+
+							//Boolean - Whether we animate scaling the Pie from the centre
+							animateScale : true,
+						});
+
+						return false;
+					});
+   				}
+   			}
+   		}
+	}).then(function checkEmbed(){
+		var checkMe = $('.body_displayed').html();
+		if(checkMe.indexOf('http') > -1){
+			var link_display =  checkMe.split("http://")[1].split(' ')[0].split('<br>')[0];
+			link_display = "http://" + link_display;
+			if(isUrl(link_display)){
+				var popup_display = "<div id='embedContainer_post'>";
+				popup_display += "<a href='" + link_display + "'>" + link_display + "</a>";
+				popup_display += "</div>";
+
+				$('.ccc_post_only').after(popup_display);
+
+				$('#embedContainer_post a').embedly({
+					key: '862acb3136eb40438f51a9a2a03d59f5'
+				});
+			}
+		}
+	});
+}
+
+//Function to unpin post
+//$('body').unbind().on("click", "#unpin_button" , function() {
+	function unpin_this(){
+	//event.preventDefault();
+	if (confirm("Are you sure you want to unpin this post?") == true) {
+        //Unpin post
+        var Point = Parse.Object.extend("Posts");
+		var point = new Point();
+		point.id = postId;
+		point.set("Pinned", 0);
+		point.save();
+		$('#unpin_button').remove();
+
+		//Right Column - Remove Color
+		$('#' + postId).removeClass('pinned_bg_resource');
+		$('#' + postId).removeClass('pinned_bg_job');
+		$('#' + postId).removeClass('pinned_bg_event');
+		$('#' + postId).removeClass('pinned_bg_question');
+		$('#' + postId).find('i').remove();
+		var moveMe = $('#' + postId);
+		moveMe.remove();
+		//Redisplay
+		$('#mini_all ul').prepend(moveMe);
+		//Redefine Lists
+		var options = {
+    		valueNames: [ 'orderTime', 'post_mini_count' ]
+		};
+		miniFeedList = new List('mini_all', options);
+		miniPinnedList = new List('mini_pinned', options);
+		//Proper Position
+		if ($('#recent_id').css('text-decoration') == 'underline'){
+			console.log('order by recent');
+			miniFeedList.sort('orderTime', { order: "desc" });
+			miniPinnedList.sort('orderTime', { order: "desc" });
+		}
+		if ($('#top_id').css('text-decoration') == 'underline'){
+			console.log('order by top');
+			miniFeedList.sort('post_mini_count', { order: "desc" });
+			miniPinnedList.sort('post_mini_count', { order: "desc" });
+		}
+    }
+}
+
+
+//Function to delete post
+//Will delete post along w/
+//associated responses
+$('body').unbind().on("click", "#delete_button" , function() {
+	event.preventDefault();
+	if (confirm("Are you sure you want to delete this post?") == true) {
+		//Delete Responses
+		var Responses = Parse.Object.extend("Responses");
+		var query = new Parse.Query(Responses);
+		query.equalTo("Post", {
+			__type: "Pointer",
+			className: "Posts",
+			objectId: postId
+		});
+		query.find().then(function(results){
+			for (var i = 0; i < results.length; i++){
+				results[i].destroy();
+			}
+		});
+		//Delete Responses
+		var Point = Parse.Object.extend("Posts");
+		var point = new Point();
+		point.id = postId;
+		point.destroy({
+			success: function (){
+					Ajax("feed.html");
+			}
+		});
+    }
+});
+
+
+
+
+function displayresponses(postId){
+	$('#responses_list').html(' ');
+	var response_ids = [];
+	var responses = [];
+	var responses_createdAt = [];
+	var author_f_names = [];
+	var author_l_names = [];
+	var response_author_ids = [];
+	
+	var dash = '-';
+
+	var Responses = Parse.Object.extend("Responses");
+	var query = new Parse.Query(Responses);
+	query.descending("createdAt");
+	query.include("Author");
+	query.equalTo("Post", {
+		__type: "Pointer",
+		className: "Posts",
+		objectId: postId
+	});
+	query.find().then(function(results){
+		for (var i = 0; i < results.length; i++){
+			responses.push(results[i].get("Body"));
+			responses_createdAt.push(results[i].createdAt);
+			author_f_names.push(results[i].get("Author").get("F_Name"));
+			author_l_names.push(results[i].get("Author").get("L_Name"));
+			response_author_ids.push(results[i].get("Author").id);
+			response_ids.push(results[i].id);
+			if(results[i].has("Attachment")){
+				Response_File_url[i] = results[i].get("Attachment").url();	
+				Response_File[i] = results[i].get("Attachment").name();
+				Response_File[i] = Response_File[i].split(dash).pop();
+			console.log(Response_File[i]);
+			}
+		}
+	}).then(function display(){
+		//console.log(responses.length);
+		if(responses.length > 0){
+			for (var i = 0; i < responses.length; i++){
+				var text = "<li class = 'response_post_container' id = '" + response_ids[i] + "'>";
+					text += "<div class = 'response_date'>" + moment(responses_createdAt[i]).fromNow() + "</div>";
+					text += "<div class='response_body'>" + responses[i] + "</div>";
+					if(Response_File[i] != undefined){
+						text += "<div class='response_file_container'><p style='font-weight:700;margin:0; padding:8px 0px 8px 0px'> Attachment: <a  style='font-weight:500' href='" + Response_File_url[i] + "' class='pointer green' target='_blank'>"  + Response_File[i]  +  "</a></div>";
+					}
+					text += "<div class='response_bottom'>"
+						text += "<span><a class='author_link pointer' id='" + response_author_ids[i] + "'>" + author_f_names[i] + " " + author_l_names[i] + "</a></span>";
+						if(response_author_ids[i] == currentUser.id){
+							text += "<span><input type ='submit' value='Delete' class ='remove_response pointer underline'/></span>";
+						} 
+					text += "</div>";
+				text += "</li>";
+				$(text).appendTo('#responses_list');
+			}
+		}
+		
+	});
+}
+
+
+//Document Ready
+//Gets the state which contains postid
+//Callback for Post & Feed Loading
+$(document).ready(function(e){
+	postId = window.history.state;
+	console.log(postId);
+	loadMainPost(postId);
+	loadFeedPosts();
+	displayresponses(postId);
+});
+
+$('body').on("click", ".post_mini" , function() {
+	loadMainPost(this.id);
+	displayresponses(this.id);
+	postId = this.id;
+	return false;
+});
+
+//Delete Response
+function deleteResponse(x){
+	//console.log("deleteResponse function called");
+	var Point = Parse.Object.extend("Responses");
+	var point = new Point();
+	var query = new Parse.Query(Point);
+	point.id = x;
+	//console.log(point.id);
+	query.get(point.id, {
+		success: function(point){
+		point.destroy();
+		$('#'+x).closest("li").remove();		
+		}
+	});
+	
+	var Point = Parse.Object.extend("Posts");
+	var point = new Point();
+	point.id = postId;
+	point.increment("Responses",-1);
+	point.save();
+	return false;
+}
+
+$(document).unbind().on("click", ".remove_response" , function(event) {
+	if (confirm("Are you sure you want to delete this response?") == true) {
+		//console.log("in the click function");
+		event.preventDefault();
+		var x = $(this).closest("li").attr("id");
+		deleteResponse(x);
+		return false;
+	}
+});
+
+//Clicking author name brings to author's profile
+$(document).on("click", ".author_link" , function() {
+	Ajax("profile.html", this.id);
+});
+
+
+//function to get back the attacher in responses on the click of 'x'
+function delete_response_file(){
+	$('.deletable').remove();
+	$('#response_file_uploader').val("");
+	//$('#file_label').click(true);
+	$('#file_label').html("Attach a file");
+	$('#file_label').addClass('pointer');
+
+}
+
+//When File is uploaded within a Response
+//Display the name of the file
+$('body').on('change', "#response_file_uploader" , function() {
+	var fullname = $(this).val();
+	if(fullname != ""){
+		//$('.deletable').remove();
+		fullname = fullname.replace(/\s+/g, ' ');
+		var n = fullname.lastIndexOf('\\');
+		fullname = fullname.replace(/\+/g, ' ');
+		fullname = fullname.substring(n + 1);
+		$('#file_label').html(fullname);
+		$('#file_label').removeClass('pointer');
+		//$('#file_label').click(false);
+		$("<span> <a class = 'fa fa-times deletable pointer hover_red' onclick = 'delete_response_file()'></a></span>").insertAfter('#file_label');
+		}
+});
+
+
+</script>
+
+<!--Individual Post-->
+
+<!--Load Story Here-->
+<div class="center_column" style="padding:0px 40px 0px 40px;">
+	<div class="center_column_content ccc_post_only"></div>
+	<!--Responses-->
+	<div class="center_column_responses">
+		<div id='response_creator_container'>
+			<div style='width:80%;margin:0 auto;'>
+				<span style='float:right;width:100%;text-align:right;margin-bottom:10px;'>
+					<label for="response_file_uploader" id="file_label" class='pointer'>Attach a file</label>		
+					<input type="file" style="display:none" id="response_file_uploader"/>
+				</span>
+			</div>
+			<form id="response_form" onsubmit="createResponse(event); return false;">
+				<textarea id="response_box"  placeholder = "Write your Response" required></textarea>
+				<div id='response_button_container'>
+					<input type="submit" value="Respond" id ="response_post" class='pointer'/>
+				</div>
+			</form>
+		</div>
+		<!--Load Responses Here-->
+		<div id="center_column_responses_list">
+			<ul id='responses_list'/>
+		</div>
+	</div>
+</div>
+
+
+
+<div class="right_column">
+	<div class="controller half">
+		<!--Left-->
+		<ul class="controller_left" style="margin: 0;padding-left: 10px;">
+			<div id="top">
+				<li><a class="pointer mini" onclick="orderByTop()" id="top_id" style="text-decoration:underline;">Top</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="orderByRecent()" id="recent_id">Recent</a></li>
+			</div>
+			<div id="bottom">
+				<li><a class="pointer mini" onclick="sortByAll()" id="all_id" style="text-decoration:underline;">All</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="sortByResources()" id="resources_id">Spotlights</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="sortByQuestions()" id="questions_id">Questions</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="sortByJobs()" id="jobs_id">Jobs</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="sortByEvents()" id="events_id">Events</a></li>
+			</div>
+		</ul>
+	</div>
+	<div class="loadminiFeedHere">
+		<!--Pinned Posts Here-->
+		<div class="pinned_container" id="mini_pinned"></div>
+		<!--All Other Posts Here-->
+		<div class="all_others_container" id="mini_all"></div>
+	</div>
+</div>

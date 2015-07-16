@@ -1,0 +1,63 @@
+<!--directory.html-->
+
+<script>
+
+var f_names = [];
+var l_names = [];
+var ids = [];
+var positions = [];
+var company_names = [];
+var photos = [];
+
+$(document).ready(function loadDirectory(){
+
+	var query = new Parse.Query(Parse.User);
+	query.include("Company");
+	query.ascending("F_Name");
+	query.find().then(function get(results){
+		for (i = 0; i < results.length; i++) {
+			f_names.push(results[i].get("F_Name"));
+			l_names.push(results[i].get("L_Name"));
+			ids.push(results[i].id);
+			if (results[i].has("Position")){
+				positions.push(results[i].get("Position"));
+			}else{
+				positions.push("x");
+			}
+			if (results[i].has("Photo")){
+				photos.push(results[i].get("Photo").url());
+			}else{
+				photos.push("img/stock.jpg");
+			}
+			company_names.push(results[i].get("Company").get("Name"));
+		}
+	}).then(function displayUsers(){
+		var text = "<ul style='padding-left:0;text-align:center;'>";
+		for (i = 0; i < ids.length; i++) {
+			text += "<li class='directory_user_container pointer link_container' id='" + ids[i] + "'>";
+			text += "<a class='link_container pointer' id='" + ids[i] + "'>";
+				text += "<div class='directory_photo' style='background-image: url(" + photos[i] +");'></div>";
+				text += "<div class='name_container'>" + f_names[i] + " " + l_names[i] + "</div>";
+				if(positions[i] != 'x'){
+					text += "<div class='position_container'>" + positions[i] + "</div>";
+				}
+				text += "<div class='company_container'>" + company_names[i] + "</div>";
+			text += "</a>";
+			//TODO: Remove <br> when CSS (AB-11) is complete
+			text += "<br>";
+			text += "</li>";
+		}
+		text += "</ul>";
+		$('#content_container').html(text);
+	});
+});
+
+//Clicking sends to user profile
+//This onclick handler needs to be bound
+//in a separate function because .link_container
+//is created dynamically.
+$(document).on("click", ".link_container" , function() {
+	Ajax("profile.html", this.id);
+});
+
+</script>

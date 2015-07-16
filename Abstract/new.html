@@ -1,0 +1,464 @@
+<!--new.html-->
+<script>
+var type;
+var company1Name;
+var company2Name;
+var pinned;
+var file;
+var blank_array = [];
+
+
+
+
+//Determine Which Post Type To Display
+$(window).ready(function(e){
+	type = window.history.state;
+
+	//Check User's companies (AB-81)
+	//If companies are administrative,
+	//user will be able to pin the post.
+	var query = new Parse.Query(Parse.User);
+	query.include("Company");
+	query.include("Company2");
+	query.get(currentUserId).then(function(results){
+		company1Name = results.get("Company").get("Name");
+		if (results.has("Company2")){
+			company2Name = results.get("Company2").get("Name");
+		}
+	}).then(function displayInputs(){
+		//Display Appropriate Inputs
+		var text = "<form onsubmit='createPost();return false;'>";
+		if (type == "Resource"){
+				text += "<div class='create_input_row title_padding'><input class='title post_title_new' type='text' placeholder='Title' required></input></div>";
+				text += "<div class='create_input_row' style = 'text-align:center;'><label for='resource_uploader' id='file_label' class='pointer' style='color:#565a5c;text-align:center'><p>Attach a file</p><p style='text-align:center;'><i class='fa fa-plus fa-1x icon pointer' style='float:none'></i></p></label><input type='file' style='display:none' id='resource_uploader'></div>";
+				text += "<div class='create_input_row'><textarea class='body post_body' type='text' placeholder = 'Tell us about your spotlight..' required></textarea></div>";
+		}
+		if (type == "Event"){
+				text += "<div class='create_input_row title_padding'><input class='title post_title_new' type='text' placeholder='Title' required></input></div>";
+				
+				text += "<div class='create_input_row event_div event_when_container'><span class='event_when_label'>Start</span><input class='start_event event_text event_when_input' type='datetime-local'  id ='event_date_start' required></input></div>";
+				
+				text += "<div class='create_input_row event_div event_when_container'><span class='event_when_label'>End</span><input class='end_event event_text event_when_input' type='datetime-local' id ='event_date_end' required></input></div>";
+
+				text += "<div class='create_input_row event_div'><input class='where event_text' id = 'pac-input' type='text' placeholder='Address' style='font-size:130%;' required></input></div>";
+				text += "<div class='create_input_row event_div' id='map_container'><div id = 'map-canvas'></div></div>"; 
+				text += "<div class='create_input_row event_div'><input class='price event_text' type='number' min='0' placeholder='Price (USD)' required></input></div>";
+				text += "<div class='create_input_row event_div'><textarea class='body post_body' type='text' placeholder='Tell us about your event' required></textarea></div>";
+				text += "<div class='create_input_row event_div' id='reoccuring_prompt_container'>Is this event reoccuring?<input type='checkbox' class='reoccuring'></input></div>";
+				//If Reoccuring is checked
+				//Display Options
+				text += "<div class='create_input_row event_div' style='display:none'; id='reoccuring_options'><select id='options_selector'>";
+  					text += "<option selected disabled hidden value=''></option>";
+  					text += "<option value='Daily'>Daily</option>";
+  					text += "<option value='Weekdays'>Weekdays</option>";
+  					text += "<option value='Weekly'>Weekly</option>";
+  					text += "<option value='Monthly'>Monthly</option>";
+  					text += "<option value='Yearly'>Yearly</option>";
+				text += "</select></div>";
+		}
+		if (type == "Question"){
+				text += "<div class='create_input_row title_padding'><input class='title post_title_new' type='text' placeholder='Question' required></input></div>";
+				text += "<div class='create_input_row event_div'><input class='answer' id='answer1' type='text' placeholder='Answer 1 (Optional)'></input></div>";
+				text += "<div class='create_input_row event_div'><input class='answer' id='answer2' type='text' placeholder='Answer 2 (Optional)'></input></div>";
+				text += "<div class='create_input_row event_div'><input class='answer' id='answer3' type='text' placeholder='Answer 3 (Optional)'></input></div>";
+				text += "<div class='create_input_row event_div'><input class='answer' id='answer4' type='text' placeholder='Answer 4 (Optional)'></input></div>";
+				//Answer 5
+				text += "<div class='create_input_row event_div'><input class='answer hidden' id='answer5' type='text' placeholder='Answer 5 (Optional)'></input></div>";
+				//Answer 6
+				text += "<div class='create_input_row event_div'><input class='answer hidden' id='answer6' type='text' placeholder='Answer 6 (Optional)'></input></div>";
+				//Answer 7
+				text += "<div class='create_input_row event_div'><input class='answer hidden' id='answer7' type='text' placeholder='Answer 7 (Optional)'></input></div>";
+				//Answer 8
+				text += "<div class='create_input_row event_div'><input class='answer hidden' id='answer8' type='text' placeholder='Answer 8 (Optional)'></input></div>";
+				//Answer 9
+				text += "<div class='create_input_row event_div'><input class='answer hidden' id='answer9' type='text' placeholder='Answer 9 (Optional)'></input></div>";
+				//Answer 10
+				text += "<div class='create_input_row event_div'><input class='answer hidden' id='answer10' type='text' placeholder='Answer 10 (Optional)'></input></div>";
+				text += "<div class='create_input_row event_div'><textarea class='body post_body' type='text' placeholder='Tell us about your question..' required></textarea></div>";
+		}
+		if (type == "Job"){
+				text += "<div class='create_input_row title_padding'><input class='title post_title_new' type='text' placeholder='Position' required></input></div>";
+				text += "<div class='create_input_row event_div'><select id='job_time' required>";
+					text += "<option disabled selected>Type</option>";
+					text += "<option value='' disabled></option>";
+  					text += "<option value='Part_Time'>Part Time</option>";
+  					text += "<option value='Full_Time'>Full Time</option>";
+  					text += "<option value='Contract'>Contract</option>";
+  					text += "<option value='Internship'>Internship</option>";
+  					text += "<option value='Temp'>Temp</option>";
+				text += "</select></div>";
+				text += "<div class='create_input_row event_div'><select id='job_experience' required>";
+  					text += "<option disabled selected>Education Level</option>";
+  					text += "<option value='' disabled></option>";
+  					text += "<option value='Less than high school'>Less than high school</option>";
+  					text += "<option value='High school diploma or equivalent'>High school diploma or equivalent</option>";
+  					text += "<option value='Some college, no degree'>Some college, no degree</option>";
+  					text += "<option value='Postsecondary non-degree award'>Postsecondary non-degree award</option>";
+  					text += "<option value='Associate’s degree'>Associate’s degree</option>";
+  					text += "<option value='Bachelor’s degree'>Bachelor’s degree</option>";
+  					text += "<option value='Master’s degree'>Master's degree</option>";
+  					text += "<option value='Doctoral or professional degree'>Doctoral or professional degree</option>";
+				text += "</select></div>";
+				text += "<div class='create_input_row event_div'><input class='when event_text' type='text' id = 'job_start_date' placeholder = 'Starting Date' required></input></div>";
+				text += "<div class='create_input_row event_div'><input class='where event_text' type='text' placeholder='Location' required></input></div>";
+				text += "<div class='create_input_row event_div'><input class='job_company event_text' type='text' placeholder='Company' required></input></div>";
+				text += "<div class='create_input_row event_div'><input class='skills event_text' type='text' placeholder='Necessary Skills'></input><button class = 'add_button' id='add_skill' type='submit' value='Add'>Add</button></div>";
+				text += "<div class='create_input_row event_div'><ul class = 'event_div' id='skills_list'></ul></div>";
+				text += "<div class='create_input_row event_div'><textarea class='body post_body' type='text' placeholder='Tell us about the position..' required></textarea></div>";
+		}
+
+		//Administrators can pin posts
+		if (company1Name == "TECH Fort Worth" || company1Name == "Abstract" || company2Name == "TECH Fort Worth" || company2Name == "Abstract"){
+			console.log("User has pin privilege");
+			text += "<div class='create_input_row pin_div '>Would you like to pin this to the top of the feed?<input type='checkbox' class='pinned'></input></div>";
+		}else{
+			console.log("User does not have pin privilege");
+		}
+
+		//Post Button
+		text += "<div class='create_input_row' ><input class='Post_button' type='submit' value='Post'></input></div>";
+		text += "</form>";
+
+		//Display appropriate inputs
+		$('#content_container').html(text);
+
+		//Optional Answers for Question post
+		//Answer 5
+		$('#answer4').on('click', function(){$('#answer5').show();});
+		//Answer 6
+		$('#answer5').on('click', function(){$('#answer6').show();});
+		//Answer 7
+		$('#answer6').on('click', function(){$('#answer7').show();});
+		//Answer 8
+		$('#answer7').on('click', function(){$('#answer8').show();});
+		//Answer 9
+		$('#answer8').on('click', function(){$('#answer9').show();});
+		//Answer 10
+		$('#answer9').on('click', function(){$('#answer10').show();});
+
+		//For Event Post When user toggles reoccuring
+		//Display reoccuring options
+		$(".reoccuring").change(function() {
+			$("#reoccuring_options").toggle();
+		});
+
+		//For Job Post When user enters skill, 
+		//display skill below.
+		$('.skills').keypress(function (e) {
+	 		var key = e.which;
+	 		if(key == 13 && $(this).val().length > 1) {
+	   			var skill = $(this).val();
+	   			var text = "<li class='entered_skill hover_red'>" + skill + "</li>";
+	   			$('#skills_list').append(text);
+	   			$(this).val("");
+	 		}
+		});
+
+		//Dynamically bind Add Skill button
+		//This is useful if user doesnt
+		//know to click enter
+		$(document).on("click", "#add_skill" , function addSkill() {
+			var skill = $('.skills').val();
+	   		var text = "<li class='entered_skill hover_red'>" + skill + "</li>";
+	   		$('#skills_list').append(text);
+	   		$('.skills').val("");
+	   		return false;
+		});
+
+		//Clicking a skill
+		//deletes it from the list
+		$('#skills_list').on('click', '.entered_skill', function(){
+			$(this).remove();
+
+		});
+
+		//Display the date for the user to pick for jobs
+		$('#job_start_date').on('click',function(){
+			$('#job_start_date').attr('type', 'date');
+		});
+
+		function initialize() {
+			var markers = [];
+			var map = new google.maps.Map(document.getElementById('map-canvas'), {
+				mapTypeId: google.maps.MapTypeId.ROADMAP,
+				center: new google.maps.LatLng(32.732442, -97.321656),
+				zoom: 15
+			});
+
+			// Create the search box and link it to the UI element.
+			var input = /** @type {HTMLInputElement} */(
+			document.getElementById('pac-input'));
+			map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+			var searchBox = new google.maps.places.SearchBox(
+			/** @type {HTMLInputElement} */(input));
+
+			// [START region_getplaces]
+			// Listen for the event fired when the user selects an item from the
+			// pick list. Retrieve the matching places for that item.
+			google.maps.event.addListener(searchBox, 'places_changed', function() {
+				var places = searchBox.getPlaces();
+
+				if (places.length == 0) {
+					return;
+				}
+				for (var i = 0, marker; marker = markers[i]; i++) {
+					marker.setMap(null);
+				}
+
+				// For each place, get the icon, place name, and location.
+				markers = [];
+				var bounds = new google.maps.LatLngBounds();
+				for (var i = 0, place; place = places[i]; i++) {
+					var image = {
+						url: place.icon,
+						size: new google.maps.Size(71, 71),
+						origin: new google.maps.Point(0, 0),
+						anchor: new google.maps.Point(17, 34),
+						scaledSize: new google.maps.Size(25, 25)
+					};	
+					// Create a marker for each place.
+					var marker = new google.maps.Marker({
+						map: map,
+						icon: image,
+						title: place.name,
+						position: place.geometry.location
+					});
+					//console.log(place.geometry.location);
+					markers.push(marker);
+					bounds.extend(place.geometry.location);
+				}
+				map.fitBounds(bounds);
+			});
+			// [END region_getplaces]
+
+			// Bias the SearchBox results towards places that are within the bounds of the
+			// current map's viewport.
+			google.maps.event.addListener(map, 'bounds_changed', function() {
+				var bounds = map.getBounds();
+				searchBox.setBounds(bounds);
+			});
+		}
+		initialize();
+	});
+});
+
+
+// function to bring the attacher back if the user does not want to attach the file
+function delete_resource_file(){
+	$('.deletable').remove();
+	$("#resource_uploader").val("");				// to delete the file from the resource uploader
+	$('#file_label').html("<p>Attach a file</p> <p style='text-align:center;'><i class='fa fa-plus fa-1x icon pointer' style='float:none'></i></p>");
+	$('#file_label').addClass('pointer');
+	//$('#resource_uploader').click(true);
+
+}
+
+$('body').on('change', "#resource_uploader" , function() {
+	var fullname = $(this).val();
+	if(fullname != ""){
+		$('.deletable').remove();
+	fullname = fullname.replace(/\s+/g, ' ');
+	var n = fullname.lastIndexOf('\\');
+	fullname = fullname.replace(/\+/g, ' ');
+	fullname = fullname.substring(n + 1);
+	$('#file_label').html("<p id = 'file_name'>" + fullname + "</p>");
+	$('#file_label').removeClass('pointer');
+	//$('#file_name').click(false);
+	$("<span id = 'deletable_container'> <a class = 'fa fa-times deletable pointer hover_red' onclick = 'delete_resource_file()'></a></span>").insertAfter('#file_label');
+	//$('#resource_uploader').click(false);
+	}
+});
+
+//On Paste
+$('body').bind('paste', '.post_body', function(e){
+    var pasted = e.originalEvent.clipboardData ? e.originalEvent.clipboardData.getData("text/plain") : window.clipboardData.getData("text");
+	//Check if what was pasted is a URL
+	if (isUrl(pasted) && $('#embedContainer').html() == undefined){
+		var popup = "<div id='embedContainer'>";
+			popup += "<a href='" + pasted + "'>" + pasted + "</a>";
+			popup += "</div>";
+		console.log(popup);
+		$('.post_body').parent().prepend(popup);
+
+		$('#embedContainer a').embedly({
+			key: '862acb3136eb40438f51a9a2a03d59f5',
+			query: {maxwidth:500} 
+		});
+		$('#embedContainer a').attr('target', '_blank');
+	}
+});
+
+//If user clears textbox
+$("body").on('keyup', '.post_body', function() {
+    if (!this.value) {
+        $('#embedContainer').remove();
+        var pasted;
+        console.log(pasted);
+    }
+});
+
+
+//Create A New Post
+function createPost(){
+
+	//Title of Post
+	//Applicable for all post types
+	var title = $('.title').val();
+	title = capitalizeFirstLetter(title);
+	//Body
+	//Applicable for all event types
+	var body = $('.body').val().replace(/\n/g, '<br/>');
+	//File
+	//Applicable for resource posts
+	if (type == "Resource"){
+		var fileUploadControl = $("#resource_uploader")[0];
+		var fullname = $("#resource_uploader").val();
+		fullname = fullname.replace(/\s+/g, ' ');
+		var n = fullname.lastIndexOf('\\');
+		fullname = fullname.replace(/\+/g, ' ');
+		fullname = fullname.substring(n + 1);
+		if (fileUploadControl.files.length > 0) {
+	 	 	var file = fileUploadControl.files[0];
+	  		var parseFile = new Parse.File(fullname, file);
+		}
+		console.log(fullname);
+	}
+	//Add Question Mark for Questions
+	if (type == "Question"){
+		if (title.slice(-1) != "?"){
+			title = title + "?";
+		}
+	}
+	//Answer 1
+	//Applicable for questions
+	var answer1 = $('#answer1').val();
+	//Answer 2
+	//Applicable for questions
+	var answer2 = $('#answer2').val();
+	//Answer 3
+	//Applicable for questions
+	var answer3 = $('#answer3').val();
+	//Answer 4
+	//Applicable for questions
+	var answer4 = $('#answer4').val();
+	//Answer 5
+	//Applicable for questions
+	var answer5 = $('#answer5').val();
+	//Answer 6
+	//Applicable for questions
+	var answer6 = $('#answer6').val();
+	//Answer 7
+	//Applicable for questions
+	var answer7 = $('#answer7').val();
+	//Answer 8
+	//Applicable for questions
+	var answer8 = $('#answer8').val();
+	//Answer 9 
+	//Applicable for questions
+	var answer9 = $('#answer9').val();
+	//Answer 10
+	//Applicable for questions
+	var answer10 = $('#answer10').val();
+	//Reoccuring
+	//Applicable for events
+	//Only if checkbox is checked
+	if ($('.reoccuring').is(':checked')) {
+		var reoccuring = $("#options_selector option:selected").val();
+	}
+	//When
+	//applicable for events
+	var start_event1 = 	$('.start_event').val();
+	var end_event1 	 = 	$('.end_event').val();
+	//When
+	//applicable for jobs
+	var when = $('.when').val();
+	//Where
+	//applicable for events and jobs
+	var location = $('.where').val();
+	var amount = parseInt($('.price').val());
+	//Price & Starting Pay
+	//applicable for jobs
+	
+	var experience = $('#job_experience').val();
+	//Full or Part Time?
+	//applicable for jobs
+	var job_time = $('#job_time').val();
+	//Skills
+	//applicable for jobs
+	var skills = [];
+	$('.entered_skill').each(function(){
+		if($(this).text() != ""){
+		skills.push($(this).text());
+	}
+	});
+	//Company name
+	//applicable for jobs
+	var company = $('.job_company').val();
+	//console.log(company);
+	//Pinned?
+	//applicable for all
+	if ($('.pinned').is(':checked')) {
+		pinned = 1;
+	}else{
+		pinned = 0;
+	}
+
+	//CREATE POST
+	//======================================
+	var Post = Parse.Object.extend("Posts");
+	var post = new Post();
+	post.set('Type', type);
+	post.set('Author', currentUser);
+	post.set('Title', title);
+	post.set('Body', body);
+	post.set('Pinned', pinned);
+	post.set('Responses', 0);
+	post.set('Page_Views', 0);
+	//Resource Specific
+	if (type == "Resource"){
+		post.set('Resource_File', parseFile);
+		
+	}
+	//Question Specific
+	if (type == "Question"){
+		post.set('Answer1', answer1); post.set('Answer1_Response', 0);
+		post.set('Answer2', answer2); post.set('Answer2_Response', 0);
+		post.set('Answer3', answer3); post.set('Answer3_Response', 0);
+		post.set('Answer4', answer4); post.set('Answer4_Response', 0);
+		post.set('Answer5', answer5); post.set('Answer5_Response', 0);
+		post.set('Answer6', answer6); post.set('Answer6_Response', 0);
+		post.set('Answer7', answer7); post.set('Answer7_Response', 0);
+		post.set('Answer8', answer8); post.set('Answer8_Response', 0);
+		post.set('Answer9', answer9); post.set('Answer9_Response', 0);
+		post.set('Answer10', answer10); post.set('Answer10_Response', 0);
+		post.set('Has_Answered_Question', blank_array);
+	}
+	//Event Specific
+	if (type == "Event"){
+		post.set('Event_Start',start_event1);
+		post.set('Event_End',end_event1);
+		post.set('Event_Where',location);
+		post.set('Event_Price',amount);
+		post.set('Event_Reoccuring', reoccuring);
+	}
+	//Job Specific
+	if (type == "Job"){
+		post.set('Job_Skills', skills);
+	    post.set('Job_Experience', experience);
+	    post.set('Job_Location', location);
+	    post.set('Job_Starting', when);
+		post.set('Job_Company', company);
+		post.set('Job_Time', job_time);
+	}
+	post.save(null, {
+		success: function (){
+			goToPost(post.id);
+		}, 
+		error: function(error){
+			console.log(error.code + " - " + error.message);
+		}
+	});
+}
+
+</script>

@@ -1,0 +1,1219 @@
+/*app.css*/
+
+html, body{
+	margin:0;
+	top:0;
+	left:0;
+	height: 100%;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering:optimizeLegibility;
+    /*
+		+	Testing fonts from Adobe Typekit
+		+	Fonts for decision between:
+		
+		font-family: "jaf-bernina-sans";
+			+	Light: "font-weight: 200;"
+    	font-family: "jaf-bernino-sans";
+    		+	Light: "font-weight: 200;"
+    	font-family: "jaf-domus-titling-web";
+    		+	Light: "font-weight: 300;"
+    
+    font-family: 'PT Sans', sans-serif;
+    */
+    font-family: 'Lato', sans-serif !important;
+}
+
+*:focus {
+    outline: 0;
+}
+
+body{}
+
+.green{color:#00C400;}
+
+.pointer{cursor: pointer;}
+
+/*Welcome Screen*/
+#welcome_container{
+	display:none;
+	min-width:100%;
+	min-height:100%;
+	top:0;
+	left:0;
+	z-index:4;
+	background-color:rgba(0,0,0,0.1);
+	position:absolute;
+}
+/*Welcome Screen*/
+#white_popup{
+	color:#565a5c;
+	background-color:white;
+	height:260px;
+	width:460px;
+	margin:0 auto;
+	margin-top:150px;
+	border-radius:10px;
+	text-align: center;
+	padding:20px 20px 20px 20px;
+	overflow:hidden;
+}
+
+#start_tour_button{
+	font-weight:700;
+	border: 1px solid #e2e2e2;
+	border-radius: 15px;
+	padding:10px 15px 10px 15px;
+}
+
+#nav_header h1{	
+	font-weight:100;
+	font-size:50px;
+	color:#565a5c;
+	margin:0;
+}
+#nav_header{
+	text-align:center;
+	height:50px;
+	line-height:50px;
+	vertical-align: middle;
+	border-bottom:1px solid #e2e2e2;
+}
+
+#nav_container{
+	background-color:white;
+	min-height:100%;
+	margin:0;
+	top:0;
+	left:0;
+	width:250px;
+	position:fixed;
+	z-index:3;
+}
+
+.icon{
+	vertical-align:middle;
+	line-height: inherit;
+	color:#e2e2e2;
+	text-align: center;
+	float:right;
+	width:40px;
+}
+
+.center_column{
+	margin:0px 250px 0px 0px;
+	/*padding:0px 40px 0px 0px;*/
+}
+
+.right_column{
+	background-color:white;
+	min-height:100%;
+	top:0;
+	right:0;
+	width:250px;
+	border-left:1px solid #e2e2e2;
+	position:fixed;
+	z-index:3;
+}
+
+#nav_container a{
+	text-decoration: none;
+	font-weight:300;
+}
+
+#content_container{
+	background-color:#f9f9f9;
+	position:relative;
+	margin:0px 0px 15px 250px;
+	height:100%;
+	max-width:100%;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    overflow: auto;
+}
+
+ul{list-style: none;}
+
+.nav_buttons{
+	padding-left:0;
+	margin:0;
+	width:249px;
+	top: 126;
+    bottom:0;
+    position:fixed;
+    overflow-y: auto;
+    overflow-x:hidden;
+    border-right:1px solid #e2e2e2;
+    border-top:1px solid #e2e2e2;
+}
+
+.nav_buttons li{
+	width: 100%;
+	float: left;
+	height: 50px;
+	line-height:50px;
+	vertical-align: middle;
+}
+
+.nav_buttons a{
+	position: relative;
+	display: block;
+	width: 230px;
+	height: 100%;
+	text-align: left;
+	border-bottom:1px solid #e2e2e2;
+	border-right:1px solid #e2e2e2;
+	padding:0px 9.5px 0px 9.5px;
+}
+
+#nav_you:hover, #nav_cal:hover, #nav_peers:hover, #nav_rooms:hover, #nav_messenger:hover{
+	background-color: #f5f5f5;
+	-webkit-transition: background-color 0.5s;
+  	-moz-transition: background-color 0.5s;
+	transition: background-color 0.5s;
+}
+
+#nav_resource:hover{
+	background-color: rgba(0, 196, 0, 0.1);
+	-webkit-transition: background-color 0.5s;
+  	-moz-transition: background-color 0.5s;
+	transition: background-color 0.5s;
+}
+#nav_event:hover{
+	background-color: rgba(245, 0, 0, 0.1);
+	-webkit-transition: background-color 0.5s;
+  	-moz-transition: background-color 0.5s;
+	transition: background-color 0.5s;
+}
+#nav_question:hover{
+	background-color: rgba(245, 180, 0, 0.1);
+	-webkit-transition: background-color 0.5s;
+  	-moz-transition: background-color 0.5s;
+	transition: background-color 0.5s;
+}
+#nav_job:hover{
+	background-color: rgba(0,12,170, 0.1);
+	-webkit-transition: background-color 0.5s;
+  	-moz-transition: background-color 0.5s;
+	transition: background-color 0.5s;
+}
+
+#create_label{
+	width:250px;
+	height:25px;
+	padding:10px 0px 10px 0px;
+	text-align: center;
+	line-height:25px;
+	vertical-align: middle;
+	border-bottom:1px solid #e2e2e2;
+}
+#create_label a{border-bottom: 0px}
+
+#create_label a:hover{
+	background-color: rgba(0,0,0,0.0);
+	-webkit-transition: background-color 0.0s;
+  	-moz-transition: background-color 0.0s;
+	transition: background-color 0.0s;
+}
+
+/*Search Container*/
+#search_container{
+	text-align: center;
+	height:75px;
+	vertical-align: middle;
+	border-right:1px solid #e2e2e2;;
+}
+
+/*Search Input*/
+#search_input{
+	width:230px;
+	height:52px;
+	border:1px solid #e2e2e2;
+	padding:0px 0px 0px 5px;
+	margin:10px 0px 10px 0px;
+	font-size: 100%;
+	color:#565a5c;
+
+}
+/*Search Button*/
+#search_button{
+	font-weight:300;
+	color:#565a5c;
+	border:none;
+	background-color: rgba(0,0,0,0.0);
+	cursor: pointer;
+	font-size: 16px;
+}
+/*magnifying glass on search button*/
+#mag{position:absolute;top:78;left:215;color:#e2e2e2;}
+
+/*Search Results*/
+.noResultsAlert{
+	text-align: center;
+	font-weight:100;
+	font-size:50px;
+}
+
+.search_cat{
+	text-decoration: underline;
+}
+
+.hidden{display:none;}
+.hover_red:hover{color:red;}
+
+
+/*Post Title Input*/
+/*TODO: @SUSH - This padding for all inputs;*/
+.post_title_new{
+	margin:0 auto;
+	font-weight: 700;
+	display: block;
+	width:500px;
+	border:1px solid #e2e2e2;
+	height: 50px;
+	font-size: 150%;
+	padding:2px 2px 2px 10px;
+
+}
+.title_padding{
+	padding-top: 60px;
+	padding-bottom: 20px;
+}
+
+.post_button{
+	float:right;
+	font-size:125%;
+	border:none;
+	background-color: #f9f9f9;
+	cursor: pointer;
+	margin:0px 0px 30px 0px;
+	font-weight:700;
+}
+
+.add_button{
+	border: none;
+	background-color: #f9f9f9;
+	cursor: pointer;
+	font-size:125%;
+	float:right;
+	padding:25px 0px 20px 0px;
+	font-weight:700;
+}
+
+.create_input_row{
+	margin: 0 auto;
+	width: 500px;
+	padding-top: 15px;
+}
+.create_input_row input{}
+
+/*========Profiles===========*/
+
+	#program{
+		padding: 10px 10px 10px 10px;
+		text-align: center;
+		font-size: 16px;
+		font-weight: 700;
+		border-bottom: 1px solid #e2e2e2;
+		width: 230px;
+	}
+
+
+	.scrollable{
+		top: 250;
+	    bottom:0;
+	    position:fixed;
+	    overflow-y:scroll;
+	    overflow-x:hidden;
+	    padding:0px 0px 42px 0px;
+	}
+
+	#profile_picture_container{
+		margin:30px 0px 20px 0px;
+	}
+
+	#profile_picture{
+		margin:0 auto;
+		height:150px;
+		width:150px;
+		line-height: 150px;
+		text-align: center;
+		border-radius:75px;
+		background-size: cover !important;
+
+	}
+	#name{
+		margin:10px 0px 0px 0px;
+		padding:0px 0px 10px 0px;
+		text-align: center;
+		font-size:30px;
+		font-weight:300;
+		border-bottom:1px solid #e2e2e2;
+	}
+	.position{
+		padding:10px 10px 0px 10px;
+		text-align: left;
+		font-size:18px;
+		font-weight:300;
+		width:230px;
+	}
+	.company{
+		padding:0px 0px 10px 10px;
+		text-align: left;
+		font-size:16px;
+		font-weight:700;
+		border-bottom:1px solid #e2e2e2;
+		width:250px;
+	}
+	.company:hover{
+		text-decoration: underline;
+	}
+
+	.link_input{
+		margin:3px 0px 5px 10px;
+		width:230px;
+		font-size:12px;
+		font-weight: 300;
+	}
+
+	#program_selector{
+		width: 230px;
+  		font-size: 12px;
+  		font-weight: 300;
+  		border:1px solid #e2e2e2;
+  		background-color:white;
+	}
+
+/*========New.html Jobs========*/
+
+	#job_time{
+		height: 50px;
+	  	width: 500px;
+	  	border: 1px solid #e2e2e2;
+	  	background-color: white;
+	  	font-size: 100%;
+	}
+
+	.job_div{
+		text-align: center;
+		display: block;
+		padding:2px 2px 2px 10px;
+	}
+
+	#job_experience{
+		height: 50px;
+	  	width: 500px;
+	  	border: 1px solid #e2e2e2;
+	  	background-color: white;
+	  	font-size: 100%;
+	}
+
+/*=========New.html Events==========*/
+
+	/*containers*/
+	.event_div{
+		text-align: center;
+		display: block;
+	}
+
+	#reoccuring_prompt_container{
+	  	padding: 30px 0px 0px 0px;
+	  	font-size: 18px;
+	}
+
+	/*reoccuring checkbox*/
+	.reoccuring{
+		margin-left: 20px;
+	}
+
+	/*pinned checkbox*/
+	.pinned{
+		margin-left:20px;
+	}
+
+	/*options dropdown*/
+	#options_selector{
+		height: 50px;
+		width: 500px;
+		border: 1px solid #e2e2e2;
+		background-color: white;
+		font-size: 100%;
+	}
+
+/*=============Post.html Jobs===========*/
+
+	#Job_Company_Name_Container{
+		padding:0px 0px 5px 0px;
+		font-weight:700;
+	}
+	#Job_Time_Container{
+		padding:0px 0px 5px 0px;
+		font-weight:700;
+	}
+	#Job_Skills_Container{}
+
+	.Job_Skill{
+		padding: 2.5px 10px 2.5px 0px;
+		text-transform: capitalize;
+		display:inline;
+	}
+
+	/*Commas After Job Skills*/
+	.Job_Skill:after {
+	  content: ", ";
+	}
+
+	.Job_Skill:last-child:after {
+	    content: "";
+	}
+
+	#Job_Start_Container{}
+	#Job_Pay_Container{
+		padding:0px 0px 5px 0px;
+		font-weight:700;
+	}
+	#Job_Edu_Container{
+		padding-bottom:10px;
+		border-bottom:1px solid #e2e2e2;
+		margin-bottom:10px;
+		font-weight:700;
+		color:#1C1E1F;
+	}
+	#Job_Location_Container{}
+	#job_company_container{
+		padding-bottom:10px;
+		border-bottom:1px solid #e2e2e2;
+		margin-bottom:10px;
+		color:#1C1E1F;
+	}
+
+	#job_when_container{
+		padding-bottom:10px;
+		border-bottom:1px solid #e2e2e2;
+		margin-bottom:10px;
+		color:#1C1E1F;
+	}
+
+	#job_skills_label{
+		margin: 0;
+		font-weight: 700;
+	}
+
+/*==============Posts Body==============*/
+
+	.ccc_post_only{
+		background-color:white;
+		padding:20px 40px 20px 40px;
+		border:1px solid #e2e2e2;
+		border-top:0;
+	}
+
+	.center_column_content{
+		margin:25px 0px 0px 0px;
+	}
+
+	#title_container{
+		height:50px;
+		line-height:50px;
+		vertical-align: middle;
+	}
+
+	#author_container{}
+
+	#title_span{
+		font-size:36px;
+		font-weight:400;
+	}
+
+	#date_span{
+		float:right;
+		font-size:18px;
+		font-weight:700;
+	}
+
+	#buttons_container{
+		margin:5px 0px 0px 0px;
+	}
+
+	#buttons_container input{
+		border:0;
+		background-color:white;
+		font-size:13px;
+		font-weight:300;
+		padding-right:5px;
+	}
+
+	.body_displayed{
+		text-align: justify;
+		color:#1C1E1F;
+	}
+
+	#file_name{
+		text-align: center;
+		margin:0 auto;
+		width:80px;
+		display: inline;
+	}
+
+
+/*==============Responses====================*/
+
+	.center_column_responses{
+		padding:40px 0px 0px 0px;
+	}
+
+	/*Container for creating responses*/
+	#response_creator_container{
+		text-align: center
+	}
+
+	#response_button_container{
+		width:80%;
+		margin:0 auto;
+		margin-bottom:60px;
+		padding:10px 0px 0px 0px;
+	}
+
+	.responses_title_label{
+	    padding: 0px 0px 15px 0px;
+	    border-bottom: 1px solid #e2e2e2;
+	    margin-bottom: 30px;
+	    margin-top: 0px;
+	    font-size: 24px;
+	}
+
+	#response_post{
+		float:left;
+		border: 0;
+	    background-color: #f9f9f9;
+	    font-size: 16px;
+	    font-weight: 700;
+	}
+
+	.response_body{
+		text-align: justify;
+		padding:0px 70px 0px 0px;
+	}
+
+	.response_post_container{
+		background-color: white;
+		border:1px solid #e2e2e2;
+		border-top:0;
+		margin:10px 0px 10px 0px;
+		padding:10px 10px 10px 20px;
+	}
+
+	.response_post_container p{
+		margin:0px 0px 0px 0px;
+	}
+
+	#responses_list{
+		padding:0px 0px 0px 0px;
+	}
+
+	.remove_response{
+		float:right;
+		border: 0;
+	  	background-color: white;
+	  	font-size: 13px;
+	  	color: black;
+	}
+
+	.response_date{
+		float:right;
+		font-size:14px;
+		font-weight:700;
+	}
+
+	.response_file_container{
+	    padding:5px 0px 0px 0px;
+	}
+
+	.response_bottom{
+		padding:10px 0px 0px 0px;
+	}
+
+	/* Response Box Display */
+	#response_box{
+		width: 80%;
+		height: 75px;
+		resize: none;
+		font-size: 100%;
+		border:1px solid #e2e2e2;
+		margin: 0 auto;
+		padding: 10px 10px 10px 10px
+
+	}
+
+	#center_column_responses_list{
+		padding-top: 40px;
+	    border-top: 1px solid #e2e2e2;
+	}
+
+/*=============Post.html Questions=================*/
+
+	.answers_to_question{
+		margin-right:20px;
+	}
+
+	/* submit button */
+	#submitAnswer{
+		cursor: pointer;
+		padding-top: 10px;
+		background: none;
+		border:none;
+		font-size:100%;
+		font-weight:700;
+	}
+
+	.answer_text{
+		display:inline;
+		text-transform: capitalize;
+	}
+
+	#answersChart{
+		height:225px;
+		width:225px;
+		margin-left:20px;
+	}
+
+	/*Options Container*/
+	#radio_options{
+		width:300px;
+		display:inline-block;
+		vertical-align: top;
+	}
+
+	/*Options Form*/
+	#question_form{
+		width:300px;
+		text-align: left;
+		margin-top:16px;
+	}
+
+
+/*============Post.html Questions==============*/
+
+	/* Price */
+	#price_container{
+		padding-bottom:10px;
+		border-bottom:1px solid #e2e2e2;
+		margin-bottom:10px;
+		font-weight:700;
+		color:#1C1E1F;
+	}
+
+	/*Reoccuring*/
+	#reoccuring_container{}
+
+	#time_container{
+		padding:0px 0px 10px 0px;
+		border-bottom:1px solid #e2e2e2;
+		margin-bottom:10px;
+		color:#1C1E1F;
+	}
+
+	#address_container{
+		color:#1C1E1F;
+		font-weight:700;
+	}
+
+	.event_icon{
+		margin-right:20px;
+		font-size:1.5em;
+		width:20px;
+		text-align:center;
+		/*color:#F50000;*/
+	}
+
+	.when_container{
+		padding:0px 0px 5px 0px;
+		font-weight:700;
+	}
+
+/*===================New.html Embedding======================*/
+
+#embedContainer_post{
+	background-color:white;
+	border:1px solid #e2e2e2;
+	border-top:0px;
+	height:auto;
+	padding:20px;
+}
+
+#embedContainer_post a{
+	color: #1C1E1F;
+	text-decoration: none;
+	font-weight: 700;
+	font-size:18px;
+}
+
+#embedContainer_post .description{
+	margin-top: 5px;
+	text-align: justify;
+	color: #1C1E1F;
+	font-size:14px;
+}
+
+#embedContainer_post a:before{
+	content: '\A';
+	white-space: pre;
+}
+
+#embedContainer{
+	background-color:white;
+	border:1px solid #e2e2e2;
+	border-bottom:0px;
+	width:458px;
+	height:auto;
+	padding:20px;
+}
+
+.thumb{
+	max-width:458px !important;
+	height:auto;
+	max-height:200px;
+	display:block;
+	margin:0 auto;
+}
+
+#embedContainer a{
+	color: #1C1E1F;
+	text-decoration: none;
+	font-weight: 700;
+	font-size:18px;
+}
+
+.provider{
+	font-weight: 400 !important;
+	font-size: 16px !important;
+	text-decoration: underline !important;
+	margin-top: -17px !important;
+	display: block;
+}
+
+#embedContainer .description{
+	margin-top: 5px;
+	text-align: justify;
+	color: #1C1E1F;
+	font-size:14px;
+}
+
+#embedContainer a:before{
+	content: '\A';
+	white-space: pre;
+}
+
+/*=======================*/
+
+.answer{
+	margin: 0 auto;
+	padding:2px 2px 2px 10px;
+	width: 500px;
+	height: 25px;
+	border:1px solid #e2e2e2;
+
+}
+
+/*New.html Skills*/
+.entered_skill{
+	text-align: left;
+	padding-left:95px;
+	padding:2px 0px 2px 95px;
+	text-transform: capitalize;
+}
+
+.event_text{
+	margin:0 auto;
+	font-weight: 500;
+	display: block;
+	width:500px;
+	height: 50px;
+	font-size: 100%;
+	text-transform: capitalize;
+	border:1px solid #e2e2e2;
+	padding: 2px 2px 2px 10px;
+}
+
+.pin_div{
+	margin: 0 auto;
+	text-align: center;
+	padding:30px 0px 10px 0px;
+	display: block;
+	font-size:18px;
+}
+/*New.html*/
+.post_body{
+	font-size: 100%;
+	resize:none;
+	width: 500px; 
+	height: 150px;
+	border:1px solid #e2e2e2;
+	padding:10px;
+}
+
+label[for=response_file_uploader]{
+	width: 50px;
+}
+/* Google maps Display for Events */
+#map-canvas{
+	width:500px;
+	height:400px;
+	background-color: #CCC;
+}
+
+/*New.html - Event - Map Container*/
+#map_container{
+	padding-top:0;
+}
+
+/*New.html - Event - Price Container*/
+.price{
+}
+}
+.Skills_List{
+	list-style: none;
+	padding:0;
+	margin:0;
+}
+
+/*Input for Event Start and Finish (new.html)*/
+.event_when_input{
+	width: 425px;
+    float: right;
+    margin-bottom: 10px;
+}
+.event_when_container{
+	height:65px;
+	line-height:50px;
+	vertical-align: middle;
+	padding-top:15px;
+}
+.event_when_label{
+	font-weight:700;
+}
+
+
+/*Profile Links*/
+#links_container ul{
+	text-align:center;
+	padding:16px 10px 16px 0px;
+	display: table;
+	table-layout: fixed; 
+	width: 230px;
+	margin: 0px 0px 0px 0px;
+}
+
+#links_container li{display: table-cell;}
+#links_container a{}
+#links_container{border-bottom:1px solid #e2e2e2;display:none;}
+
+/*Profile Bio*/
+#bio{
+	font-size:13px;
+	font-weight:300;
+	text-align: left;
+	width:230px;
+	margin:10px 0px 10px 0px;
+	padding:0px 10px 0px 10px;
+	text-align: justify;
+    text-justify: inter-word;
+    word-break: break-word;
+}
+
+/*Bio Entry Box (when editing profile)*/
+#profile_bio_textarea{
+	width:230px;
+	resize:none;
+	margin:5px 0px 5px 0px;
+	border:1px solid #e2e2e2;
+	padding:5px 5px 5px 5px;
+
+}
+
+#skills_container{
+	border-top:1px solid #e2e2e2;
+	padding-bottom: 5px;
+}
+
+/*Input Box for Skills - Profile*/
+#skills_input{
+	font-size: 12px;
+	font-weight: 300;
+	width:230px;
+	margin:3px 0px 10px 10px;
+}
+/*Entering Skills on the Profile
+This class is used on the skills
+that are displayed above the entry
+input*/
+.profile_skill{
+	padding:0px 0px 2px 0px;
+	font-weight: 300;
+}
+
+/*UL for Skills*/
+#skills_list{
+	margin:0px 0px 0px 0px;
+}
+
+/*li for Interest when inputted*/
+.profile_interest{
+	padding:0px 0px 2px 0px;
+	font-weight: 300;
+}
+
+/*UL for Skills*/
+#interests_list{
+	margin:0px 0px 0px 0px;
+}
+
+#interests_container{
+	border-top:1px solid #e2e2e2;
+	padding-bottom: 5px;
+}
+
+/*Input Box for Interests - Profile*/
+#interests_input{
+	font-size: 12px;
+	font-weight: 300;
+	width:230px;
+	margin:3px 0px 10px 10px;
+}
+
+.profile_label{
+	padding:10px 0px 5px 10px;
+	text-align: left;
+	font-size:16px;
+	margin:0;
+}
+
+/*Profile - Email + Password Input Container*/
+#personal_info_container{
+	border-bottom:1px solid #e2e2e2;
+	padding: 10px 0px 11px 0px;
+	display:none;
+	height:55px;
+}
+
+.preview{
+	display:none;
+	height:25%;
+	width:auto;
+}
+
+#edit_trigger{
+	background-color:white;
+	text-align:center;
+	width:250px;
+	border-top:1px solid #e2e2e2;
+	font-weight:300;
+	display:none;
+	bottom:0;
+	right:0;
+	position:fixed;
+	padding:10px 0px 10px 0px;
+}
+
+#edit_trigger a{
+	text-decoration: underline;
+	padding:0px 20px 0px 20px;
+}
+
+.position_label{
+	font-size:12px;
+	font-weight:300;
+	float:left;
+	width:230px;
+	/*text-transform: capitalize;*/
+}
+
+.center{text-align: center;}
+
+.controller{
+	border-bottom:1px solid #e2e2e2;
+	height:50px;
+	background-color:white;
+	line-height: 50px;
+	vertical-align:middle;
+}
+.controller li{
+	display:inline;
+	font-weight: 300;
+	font-size: 17px
+}
+
+.controller li:hover{
+	/*Change Font Color*/
+	text-decoration: underline;
+}
+
+.controller ul{
+	display:inline;
+}
+.controller_left{
+	float:left;
+	margin:10px 0px 0px 0px;
+}
+.controller_right{
+	float:right;
+	padding-right:10px;
+	margin:10px 0px 0px 0px;
+}
+
+/*Feed Container*/
+.loadFeedHere{
+	margin-top:13px;
+	top:38;
+	bottom:0;
+	position:fixed;
+	overflow-y:scroll;
+    overflow-x:hidden;
+    width:75%;
+}
+/*Profile Feed Container*/
+.loadProfFeedHere{
+	margin-top:5px;
+	top:45;
+	bottom:0;
+	position:fixed;
+	overflow-y:scroll;
+    overflow-x:hidden;
+    width:61%;
+}
+
+.loadFeedHere ul{padding-left:40px;margin:0;}
+
+/*Post Feed Container*/
+.right_column .loadFeedHere{
+	padding-top:0px;
+	top: 38;
+    bottom:0;
+    position:fixed;
+    overflow-y:scroll;
+    overflow-x:hidden;
+    width:250px;
+}
+
+.loadminiFeedHere ul{padding-left:10px;margin:0;}
+.loadminiFeedHere{
+	width:250px;
+	top:51;
+	bottom:0;
+	position:fixed;
+	overflow-y:scroll;
+    overflow-x:hidden;
+}
+
+.half{line-height: 24px;}
+
+/*Mini Feed*/
+.post_mini_count{}
+.post_mini_title{font-weight:600;overflow-x:hidden;}
+.post_mini_date{float:right; padding-right: 10px}
+.post_mini{border-bottom:1px solid #e2e2e2; padding:5px 0px 5px 7.5px;margin:10px 0px 0px 0px;background-color:#f9f9f9}
+.mini{font-size:11px;}
+
+/*Regular Feed*/
+.post{padding:5px 0px 3px 10px;border-bottom:1px solid #e2e2e2;margin:10px 0px 0px 0px;background-color:white;}
+.post_count{font-size:13px;}
+.author_link{font-size:13px;}
+.author_link:hover{text-decoration: underline;}
+.post_title{font-weight:600;overflow-x:hidden;}
+.post_date{float:right; padding-right: 10px; font-weight:300;}
+
+/*Feed Color Designators*/
+.job_color_border{border-left:1px solid #000CAA;}
+.event_color_border{border-left:1px solid #F50000;}
+.resource_color_border{border-left:1px solid #00C400;}
+.question_color_border{border-left:1px solid #F5B400;}
+
+/*Mini Feed Color Designators*/
+.job_color_border_mini{border-left:1px solid #000CAA;}
+.event_color_border_mini{border-left:1px solid #F50000;}
+.resource_color_border_mini{border-left:1px solid #00C400;}
+.question_color_border_mini{border-left:1px solid #F5B400;}
+
+/*Directory Photo*/
+.directory_photo{
+	height:150px;
+	width:150px;
+	line-height: 150px;
+	text-align: center;
+	border-radius:75px;
+    margin:0 auto;
+    background-size: cover !important;
+}
+/*Directory User Containers*/
+.directory_user_container{
+	border-bottom:1px solid #e2e2e2;
+	background-color:white;
+	display:inline-table;
+	margin:20px 10px 0px 10px;
+	text-align: center;
+	padding:10px 10px 0px 10px;
+	width:20%;
+	height:275px;
+}
+
+/*Directory Name*/
+.name_container{
+	margin:10px 0px 0px 0px;
+	font-weight:300;
+	font-size:20px;
+}
+/*Directory Position*/
+.position_container{font-size:16px; font-weight:300;padding-top:5px;}
+/*Directory Company*/
+.company_container{font-size:14px; font-weight: 700;padding-top:5px;}
+
+/*Pinned Photo's Have Background Matched*/
+.pinned_bg_job{background-color:rgba(0,12,170, 0.1);}
+.pinned_bg_event{background-color:rgba(245, 0, 0, 0.1);}
+.pinned_bg_resource{background-color:rgba(0, 196, 0, 0.1);}
+.pinned_bg_question{background-color:rgba(245, 180, 0, 0.1);}
+
+/*Hover Underline - For Use Anywhere*/
+.underline:hover{text-decoration: underline;}
+
+/*Media Queries - Keep At Bottom*/
+
+/*Profile Feed Controller*/
+@media (max-width: 980px){
+	#profileController li{
+		font-size:12px;
+	}
+}
+@media (max-width: 835px){
+	#profileController .controller_right{padding-left: 0px;margin-top:2px;}
+	#profileController .controller{line-height: 12px}
+	#profileController .controller_left{margin-top:2px;}
+	#profileController .controller_right{margin-left:5px;}
+}
+
+/*Feed Controller*/
+@media (max-width: 885px){
+	.controller li{
+		font-size: 12px
+	}
+	#profileController li{
+		font-size:10px;
+	}
+}
+@media (max-width: 715px){
+	.controller li{
+		font-size: 10px
+	}
+}
+@media (max-width: 600px){
+	.controller_right{
+		padding-left: 0px;
+		margin-top:2px;
+	}
+}
+@media (max-width: 550px){
+	.controller{line-height: 12px}
+	.controller_left{margin-top:2px;}
+	.controller_right{margin-left:5px;}
+}

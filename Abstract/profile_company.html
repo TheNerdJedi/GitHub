@@ -1,0 +1,461 @@
+<!--Load Members of Company Here-->
+<div class="center_column" style='text-align:center;'>
+	<div class="center_column_content" style='display:inline-block;'>
+		<i class="fa fa-circle-o-notch fa-spin fa-3x" id='loader'></i>
+		<!--Users-->
+	</div>	
+</div>
+
+<!--Load Profile Here-->
+<div class="right_column">
+	<div id="profile_picture_container">
+		<div id="profile_picture"></div>
+		<input type="file" id="change_profile_picture" style="display:none"/>
+	</div>
+	<div id="name"></div>
+	<!--These scroll down while name stays fixed-->
+	<div class="scrollable">
+		<!--Current TFW Program (or alumni status)-->
+		<div id="program"></div>
+		<!--Links-->
+		<div id="links_container">
+			<ul>
+				<li><a href="" id="website" target="_blank"><i class='fa fa-home fa-2x icon'></i></a></li>
+				<li><a href="" id="twitter" target="_blank"><i class='fa fa-twitter fa-2x icon'></i></a></li>
+				<li><a href="" id="linkedin" target="_blank"><i class='fa fa-linkedin fa-2x icon'></i></a></li>
+				<li><a href="" id="facebook" target="_blank"><i class='fa fa-facebook fa-2x icon'></i></a></li>
+			</ul>
+		</div>
+		<!--Bio-->
+		<div id="bio"></div>
+		<!--Members of company can edit-->
+		<div id="edit_trigger">
+			<a onclick="editCompanyProfile()" class="pointer">Edit Profile</a>
+		</div>
+	</div>
+</div>
+
+<script>
+
+//Company Variables
+var company_name;
+var company_photo;
+var company_program;
+var company_bio;
+var website;
+var twitter;
+var linkedin;
+var facebook;
+
+//People Variables
+var f_names = [];
+var l_names = [];
+var ids = [];
+var positions = [];
+var photos = [];
+
+function getProfile(companyId){
+
+	delete twitter;
+	delete linkedin;
+	delete website;
+	delete facebook;
+
+	var Company = Parse.Object.extend("Company");
+	var query = new Parse.Query(Company);
+	query.get(companyId).then(function(results){
+		//Company Name
+		company_name = results.get("Name")
+		$('#name').html(company_name);
+		//Photo
+		if (results.has("Logo")){
+			company_photo = results.get("Logo").url();
+			$('#profile_picture').css("background", "url("+ company_photo +")");
+		}else{
+			company_photo = "img/stock.jpg";
+			$('#profile_picture').css("background", "url("+ company_photo +")");
+		}
+		//Program
+		if (results.has("Program")){
+			company_program = results.get("Program");
+			$('#program').html(company_program);
+		}else{
+			$('#program').hide();
+		}
+		//Bio
+		if (results.has("Bio")){
+			company_bio = results.get("Bio");
+			$('#bio').html(company_bio);
+		}else{
+			$('#bio').hide();
+		}
+
+		//Links
+		//Check for Twitter
+		if (results.has("Twitter")){
+			twitter = results.get("Twitter");
+			$('#twitter').attr('href', 'http://www.twitter.com/' + twitter);
+			$('#twitter i').css('color', '#55acee');
+			$('#links_container').show();
+		}else{
+			$('#twitter').parent().hide();
+		}
+
+		//Check for Website
+		if (results.has("Website")){
+			website = results.get("Website");
+			website = formatURL(website);
+			$('#website').attr('href', website);
+			$('#website i').css('color', '#565a5c');  
+			$('#links_container').show();
+		}else{
+			$('#website').parent().hide();
+		}
+
+		//Check for Linkedin
+		if (results.has("LinkedIn")){
+			linkedin = results.get("LinkedIn");
+			$('#linkedin').attr('href', 'https://www.linkedin.com/profile/view?id=' + linkedin);
+			$('#linkedin i').css('color', '#0077b5');
+			$('#links_container').show();
+		}else{
+			$('#linkedin').parent().hide();
+		}
+
+		//Check for Facebook
+		if (results.has("Facebook")){
+			facebook = results.get("Facebook");
+			$('#facebook').attr('href', 'https://www.facebook.com/' + facebook);
+			$('#facebook i').css('color', 'rgb(54,100,162)');
+			$('#links_container').show();
+		}else{
+			$('#facebook').parent().hide();
+		}
+	});
+}
+
+function getEmployees(companyId){
+
+	var queryOne = new Parse.Query(Parse.User);
+	queryOne.equalTo("Company", {
+        __type: "Pointer",
+        className: "Company",
+        objectId: companyId
+    });
+    var queryTwo = new Parse.Query(Parse.User);
+	queryTwo.equalTo("Company2", {
+        __type: "Pointer",
+        className: "Company",
+        objectId: companyId
+    });
+    var combinedQuery = Parse.Query.or(queryOne, queryTwo);
+    combinedQuery.include("Company");
+	combinedQuery.find().then(function(results){
+		for (i = 0; i < results.length; i++) {
+			f_names.push(results[i].get("F_Name"));
+			l_names.push(results[i].get("L_Name"));
+			ids.push(results[i].id);
+			//Get Proper Position
+			if (companyId == results[i].get("Company").id){
+				//Company 1
+				if (results[i].has("Position")){
+					positions.push(results[i].get("Position"));
+				}else{
+					positions.push("x");
+				}
+			}else{
+				//Company 2
+				if (results[i].has("Position2")){
+					positions.push(results[i].get("Position2"));
+				}else{
+					positions.push("x");
+				}
+			}
+			if (results[i].has("Photo")){
+				photos.push(results[i].get("Photo").url());
+			}else{
+				photos.push("img/stock.jpg");
+			}
+		}
+		console.log(results);
+		//Display
+		var text = "<ul style='padding-left:0;margin-top:0;'>";
+		for (i = 0; i < ids.length; i++) {
+			text += "<li class='directory_user_container pointer' style='height:250px;' id='" + ids[i] + "'>";
+			text += "<a class='pointer' id='" + ids[i] + "'>";
+				text += "<div class='directory_photo' style='background-image: url(" + photos[i] +");'></div>";
+				text += "<div class='name_container'>" + f_names[i] + " " + l_names[i] + "</div>";
+				if(positions[i] != 'x'){
+					text += "<div class='position_container'>" + positions[i] + "</div>";
+				}
+			text += "</a>";
+			text += "</li>";
+		}
+		text += "</ul>";
+		$('#loader').remove();
+		$('.center_column_content').html(text);	
+
+		//Show Edit Button
+		for (i = 0; i < ids.length; i++) {
+			if(currentUserId == ids[i]){
+				$('#edit_trigger').show();
+			}
+		}
+		//END
+	});
+}
+
+function editCompanyProfile(){
+	//Change Text
+	$('#edit_trigger a').text("Save")
+	$('#edit_trigger a').attr('onclick', 'saveProfileEdits()');
+	$('#edit_trigger').append("<a onclick='cancelEdits()' class='pointer' id='cancelButton'>Cancel</a>");
+
+
+	//Display Links Container
+	if ($('#links_container').is(':hidden')){
+		$('#links_container').show();
+	}
+
+	//Program Container
+	if ($('#program').is(':hidden')){
+		$('#program').show();
+	}
+	var existant_program = $('#program').text();
+	console.log(existant_program);
+	var text = "<select id='program_selector' required>";
+		text += "<option id='program_label' selected disabled value=''>Affiliation</option>";
+		text += "<option value='' disabled></option>";
+		text += "<option value='ThinkLab'>ThinkLab</option>";
+		text += "<option value='SmartStart'>SmartStart</option>";
+		text += "<option value='FastForward Client'>FastFoward Client</option>";
+		text += "<option value='BreakThrough Client'>BreakThrough Client</option>";
+		text += "<option value='' disabled></option>";
+		text += "<option value='Incubation Graduate'>Incubation Graduate</option>";
+		text += "<option value='Acceleration Graduate'>Acceleration Graduate</option>";
+		text += "<option value='ThinkLab Graduate'>ThinkLab Graduate</option>";
+		text += "<option value='' disabled></option>";
+		text += "<option value='Consultancy'>Consultancy</option>";
+		text += "<option value='Developer'>Developer</option>";
+		text += "<option value='Incubator'>Incubator</option>";
+		text += "<option value='Mentor'>Mentor</option>";
+		text += "<option value='Network'>Network</option>";
+	text += "</select>";
+	$('#program').html(text);
+	//Select Existant as Default Displayed
+	$("#program_selector option").each(function() {
+  		if (existant_program == $(this).val()){
+			$(this).attr('selected', true);
+		}
+	});
+		
+	//Display All Icons for Links Container
+	$('#twitter').parent().show();
+	$('#linkedin').parent().show();
+	$('#website').parent().show();
+	$('#facebook').parent().show();
+
+	//Create Links Inputs
+	var text = "<input placeholder='Twitter @' id='twitter_input' class='link_input' value=''/>";
+		text += "<input placeholder='LinkedIn id#' id='linkedin_input' class='link_input' value=''/>";
+		text += "<input placeholder='Website' id='website_input' class='link_input' value=''/>";
+		text += "<input placeholder='Facebook handle' id='facebook_input' class='link_input' value=''/>";
+	$('#links_container').append(text)
+
+	//Show Placeholder if user has already entered their info
+	
+	if (twitter != undefined && twitter.length > 0){
+		$('#twitter_input').attr("placeholder", twitter);
+	}
+	if (linkedin != undefined && linkedin.length > 0){
+		$('#linkedin_input').attr("placeholder", linkedin);
+	}
+	if ( website != undefined && website.length > 0){
+		$('#website_input').attr("placeholder", website);
+	}
+	if (skype != undefined && skype.length > 0){
+		$('#facebook_input').attr("placeholder", facebook);
+	}
+
+	//Display Bio
+	existant_bio = $('#bio').text();
+	var added = "<textarea id='profile_bio_textarea' placeholder='Bio'></textarea>";
+	$('#bio').html(added);
+	if ($('#bio').is(':hidden')){
+		$('#bio').show();
+		$('#bio').css('margin', 0);
+		//Edit
+	}else{
+		$('#profile_bio_textarea').attr("placeholder", existant_bio);
+	}
+
+	//Bio Resizes on text entry
+	$('#profile_bio_textarea').on( 'keyup', function (e){
+		$(this).css('height', 'auto' );
+		$(this).height( this.scrollHeight );
+	});
+		$('#profile_bio_textarea').keyup();
+
+	//Click Profile Picture to Change Photo
+	$('#profile_picture').html("<i class='fa fa-plus fa-2x icon' style='color:white;float:none;' class='pointer'></i>")
+	$('#profile_picture').on('click', function(){
+		//Display Plus Sign ontop of profile picture
+		$('#change_profile_picture').click();
+		//Preview New Profile Photo
+		function readURL(input) {
+		    if (input.files && input.files[0]) {
+		        var reader = new FileReader();
+		        reader.onload = function (e) {
+		            //Image Cropping
+
+					$('#profile_picture').css("background", "url("+ e.target.result +")");
+		        }
+		        reader.readAsDataURL(input.files[0]);
+		    }
+		}
+		$("#change_profile_picture").change(function displayPreview(){
+		    readURL(this);
+		    $('#profile_picture').html(" ")
+		});
+		//TODO: Crop Photo
+	});
+}
+
+function saveProfileEdits(){
+
+	//Set Variables
+	//Photo
+	var fileUploadControl = $("#change_profile_picture")[0];
+	if (fileUploadControl != undefined && fileUploadControl.files.length > 0) {
+  		var file = fileUploadControl.files[0];
+  		var name = "photo.jpg";
+  		var photo = new Parse.File(name, file);
+	}
+
+	//Program
+	var program_added = $('#program_selector').val();
+
+	//Bio
+	var bio_added = $('#profile_bio_textarea').val().replace(/\n/g, '<br/>');
+
+	//Links
+	var twitter_added = $('#twitter_input').val();
+	var linkedin_added = $('#linkedin_input').val();
+	var website_added = $('#website_input').val();
+	var facebook_added = $('#facebook_input').val();
+
+	//save new info
+	var Company = Parse.Object.extend("Company");
+	var query = new Parse.Query(Company);
+	query.get(companyId).then(function(results){
+		results.set("Logo", photo);
+		//Program
+		if (program_added.length > 0 && program_added != undefined){
+			results.set("Program", program_added);
+		}
+		//Bio
+		if (bio_added.length > 0 && bio_added != undefined){
+			results.set("Bio", bio_added);
+		}
+		//Links
+		if (twitter_added.length > 0 && twitter_added != undefined){
+			results.set("Twitter", twitter_added);
+		}
+		if (linkedin_added.length > 0 && linkedin_added != undefined){
+			results.set("LinkedIn", linkedin_added);
+		}
+		if (website_added.length > 0 && website_added != undefined){
+			results.set("Website", website_added);	
+		}
+		if (facebook_added.length > 0 && facebook_added != undefined){
+			results.set("Facebook", facebook_added);
+		}
+
+		results.save();
+	}).then(function update(){
+		//Remove Inputs
+		$('#program_selector').remove();
+		$('.right_column input').remove();
+		$('#profile_bio_textarea').remove();
+		$('#profile_picture').html(" ");
+
+		//Update
+		//Bio
+		if (bio_added != undefined && bio_added.length > 0){
+			$('#bio').html(bio_added);
+		}else{
+			$('#bio').html(existant_bio);
+		}
+		//Program
+		if (program_added != undefined && program_added.length > 0){
+			$('#program').html(program_added);
+		}else{
+			$('#program').html(existant_program);
+		}
+		//Links
+		if (twitter_added != undefined && twitter_added.length > 0){
+			$('#twitter').attr('href', 'http://www.twitter.com/' + twitter_added);
+			$('#twitter i').css('color', '#55acee');
+		}else{
+			//Check for pre-existant
+			if ($('#twitter').attr('href').length < 1){
+				$('#twitter').parent().hide();
+			}
+		}
+		if (website_added != undefined && website_added.length > 0){
+			$('#website').attr('href', website_added);
+			$('#website i').css('color', '#565a5c');  
+		}else{
+			//Check for pre-existant
+			if ($('#website').attr('href').length < 1){
+				$('#website').parent().hide();
+			}
+		}
+		if (linkedin_added != undefined && linkedin_added.length > 0){
+			$('#linkedin').attr('href', 'https://www.linkedin.com/profile/view?id=' + linkedin_added);
+			$('#linkedin i').css('color', '#0077b5');
+		}else{
+			//Check for pre-existant
+			if ($('#linkedin').attr('href').length < 1){
+				$('#linkedin').parent().hide();
+			}
+		}
+		if (facebook_added != undefined && facebook_added.length > 0){
+			$('#facebook').attr('href', 'https://www.facebook.com/' + facebook);
+			$('#facebook i').css('color', 'rgb(54,100,162)');
+		}else{
+			//Check for pre-existant
+			if ($('#facebook').attr('href').length < 1){
+				$('#facebook').parent().hide();
+			}
+		}
+
+		if ($('#twitter').parent().is(":hidden") && $('#linkedin').parent().is(":hidden") && $('#website').parent().is(":hidden") && $('#facebook').parent().is(":hidden")){
+			$('#links_container').hide();
+		}
+
+		//Return to normal w/ updated information
+		$('#cancelButton').remove();
+		$('#edit_trigger a').text("Edit Profile");
+		$('#edit_trigger a').attr('onclick', 'editProfile()');
+		
+	});
+}
+
+//Cancel Button
+function cancelEdits(){
+	Ajax("profile_company.html", companyId);
+}
+
+$(window).ready(function(){
+	companyId = window.history.state;
+	getProfile(companyId);
+	getEmployees(companyId);
+});
+
+//Clicking sends to user profile
+$(document).on("click", ".directory_user_container" , function() {
+	Ajax("profile.html", this.id);
+});
+
+</script>

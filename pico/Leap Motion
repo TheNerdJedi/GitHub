@@ -1,0 +1,31 @@
+using Leap
+
+class Sample
+{
+    public static void Main ()
+    {
+    	//Create a sample controller and listener 
+		Controller controller = new Controller();
+		SampleListener listener = new SampleListener();
+
+		//The most recent set of images from the leap motion cameras
+		ImageList images = controller.images();
+		
+		//Have the sample listener receive events from the controller
+		controller.AddListener(listener);
+
+		controller.Config.setFloat("Gesture.Swipe.MinLength", 200.0f);
+		controller.Config.setFloat("Gesture.Swipe.MinVelocity", 750.0f);
+		controller.Config.setFloat("Gesture.ScreenTap.MinForwardVelocity", 30.0f);
+		controller.Config.setFloat("Gesture.ScreenTap.MinDistance", 1.0f);
+		controller.Config.save();
+
+        // Keep this process running until Enter is pressed
+        Console.WriteLine ("Press Enter to quit...");
+        Console.ReadLine();
+
+		//Remove the sample listener when done
+        controller.RemoveListener(listener);
+        controller.Dispose();
+    }
+}

@@ -1,0 +1,446 @@
+<!--search.html-->
+<div class="center_column" style='text-align:center;'>
+	<div class="center_column_content" style='display:inline-block;'></div>
+		<i class="fa fa-circle-o-notch fa-spin fa-3x" id='loader'></i>
+		<!--Users-->
+</div>
+
+
+<div class="right_column">
+	<div class="controller half">
+		<!--Left-->
+		<ul class="controller_left" style="margin: 0;padding-left: 10px;">
+			<div id="top">
+				<li><a class="pointer mini" onclick="orderByTop()" id="top_id" style="text-decoration:underline;">Top</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="orderByRecent()" id="recent_id">Recent</a></li>
+			</div>
+			<div id="bottom">
+				<li><a class="pointer mini" onclick="sortByAll()" id="all_id" style="text-decoration:underline;">All</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="sortByResources()" id="resources_id">Spotlights</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="sortByQuestions()" id="questions_id">Questions</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="sortByJobs()" id="jobs_id">Jobs</a></li>
+				<li class="break">|</li>
+				<li><a class="pointer mini" onclick="sortByEvents()" id="events_id">Events</a></li>
+			</div>
+		</ul>
+	</div>
+	<div class="loadminiFeedHere">
+		<!--Pinned Posts Here-->
+		<div class="pinned_container" id="mini_pinned"></div>
+		<!--All Other Posts Here-->
+		<div class="all_others_container" id="mini_all"></div>
+	</div>
+</div>
+
+<script>
+var searching_for;
+var companyid;
+
+$(window).ready(function(e){
+	searching_for = window.history.state;
+	window.history.state="";
+
+	delete f_names;
+	delete l_names;
+	delete ids;
+	delete positions;
+	delete company_names;
+	delete photos;
+	delete results;
+	delete query;
+	delete companyQuery;
+	delete queryToo;
+	delete mainQuery;
+	delete firstNameQuery;
+	delete lastNameQuery;
+
+	var f_names = [];
+	var l_names = [];
+	var ids = [];
+	var positions = [];
+	var company_names = [];
+	var photos = [];
+	var results = [];
+
+	//First Word
+	var searching_first_word = searching_for.split(' ')[0]; 
+	//Capitalized
+	var cap  = capitalizeFirstLetter(searching_for);
+	//All Caps
+	var allcaps = toTitleCase(searching_for);
+	//First Word Capitalized
+	var searching_first_word = capitalizeFirstLetter(searching_first_word);
+
+	//Query User Class
+	//Need to first query company name to get company id
+
+
+	//Company Name
+	var companyQuery = Parse.Object.extend("Company");
+	var query = new Parse.Query(companyQuery);
+	//query.matches("Name", cap);
+	query.equalTo("Name", cap);
+	var queryToo = new Parse.Query(companyQuery);
+	queryToo.equalTo("Name", allcaps);
+
+	var queryThree = new Parse.Query(companyQuery);
+	queryThree.startsWith("Name", searching_first_word);
+
+	var mainQuery = Parse.Query.or(
+		query, 
+		queryToo,
+		queryThree
+	);
+	mainQuery.find().then(function(results){
+		if (results.length > 0){
+			companyid = results[0].id;
+		}
+	}).then(function findUsers(){
+		//First Name
+		var firstNameQuery = new Parse.Query(Parse.User);
+		firstNameQuery.matches("F_Name", cap);
+		//Last Name
+		var lastNameQuery = new Parse.Query(Parse.User);
+		lastNameQuery.matches("L_Name", cap);
+		
+		//Skills
+		var User_Skill_Query = new Parse.Query(Parse.User);
+		User_Skill_Query.equalTo('Skills', searching_for);
+		var Cap_User_Skill_Query = new Parse.Query(Parse.User);
+		Cap_User_Skill_Query.equalTo('Skills', cap);
+
+		//Interests
+		var User_Interests_Query = new Parse.Query(Parse.User);
+		User_Interests_Query.equalTo('Interests', searching_for);
+		var Cap_User_Interests_Query = new Parse.Query(Parse.User);
+		Cap_User_Interests_Query.equalTo('Interests', cap);
+
+		//If the user did not search for a company
+		//The companyId will not be present
+		//Thus we forgo the companyQueries
+		if (companyid != undefined){
+			//Company1
+			var companyQuery1 = new Parse.Query(Parse.User);
+			companyQuery1.equalTo("Company", {
+        				__type: "Pointer",
+        				className: "Company",
+        				objectId: companyid
+    		});
+    		//Company2
+			var companyQuery2 = new Parse.Query(Parse.User);
+			companyQuery2.equalTo("Company2", {
+        				__type: "Pointer",
+        				className: "Company",
+        				objectId: companyid
+    		});
+    		//Combined Query
+			var mainQuery = Parse.Query.or(
+				firstNameQuery, 
+				lastNameQuery, 
+				companyQuery1, 
+				companyQuery2,
+				User_Skill_Query,
+				Cap_User_Skill_Query,
+				User_Interests_Query,
+				Cap_User_Interests_Query
+			);
+		}else{
+			//Combined Query
+			var mainQuery = Parse.Query.or(
+				firstNameQuery, 
+				lastNameQuery,
+				User_Skill_Query,
+				Cap_User_Skill_Query,
+				User_Interests_Query,
+				Cap_User_Interests_Query
+			);
+		}		
+		mainQuery.include("Company");
+		mainQuery.find().then(function(results){
+			if (results.length > 0){
+				//Get Results
+				for (i = 0; i < results.length; i++) {
+					f_names.push(results[i].get("F_Name"));
+					l_names.push(results[i].get("L_Name"));
+					ids.push(results[i].id);
+					if (results[i].has("Position")){
+						positions.push(results[i].get("Position"));
+					}else{
+						positions.push("x");
+					}
+					if (results[i].has("Photo")){
+						photos.push(results[i].get("Photo").url());
+					}else{
+						photos.push("img/stock.jpg");
+					}
+					company_names.push(results[i].get("Company").get("Name"));
+				}
+				console.log(results);
+				//Display
+				var text = "<ul style='padding-left:0;margin-top:0;'>";
+				for (i = 0; i < ids.length; i++) {
+					text += "<li class='directory_user_container pointer' id='" + ids[i] + "'>";
+					text += "<a class='pointer' id='" + ids[i] + "'>";
+						text += "<div class='directory_photo' style='background-image: url(" + photos[i] +");'></div>";
+						text += "<div class='name_container'>" + f_names[i] + " " + l_names[i] + "</div>";
+						if(positions[i] != 'x'){
+							text += "<div class='position_container'>" + positions[i] + "</div>";
+						}
+						text += "<div class='company_container'>" + company_names[i] + "</div>";
+					text += "</a>";
+					text += "<br>";
+					text += "</li>";
+				}
+				text += "</ul>";
+
+			}else{
+				var text = "<p class='noResultsAlert'>No Users Found <br><i class='fa fa-meh-o fa-2x' style='color:#e2e2e2;'></i></p>";
+			}
+			$('.center_column_content').html(text);
+		});
+	});
+
+	var results = [];
+	//Query Posts Class
+	function findPosts(){
+		//Query Posts
+		var postIds = [];
+		var types = [];
+		var author_first_names = [];
+		var author_last_names = [];
+		var titles = [];
+		var created_dates = [];
+		var response_counts = [];
+		var pinned = [];
+
+		var Posts = Parse.Object.extend("Posts");
+		//Title
+		var Titlequery = new Parse.Query(Posts);
+		Titlequery.matches("Title", searching_for);
+		//Capitalized
+		var Cap_Titlequery = new Parse.Query(Posts);
+		Cap_Titlequery.matches("Title", cap);
+
+		//Skills
+		var Skillsquery = new Parse.Query(Posts);
+		Skillsquery.equalTo("Job_Skills", searching_for);
+		//Capitalized
+		var Cap_Skillsquery = new Parse.Query(Posts);
+		Cap_Skillsquery.equalTo("Job_Skills", cap);
+
+		//Event Location
+		var EventLocationquery = new Parse.Query(Posts);
+		EventLocationquery.matches("Event_Where", searching_for);
+		//Capitalized
+		var Cap_Eventquery = new Parse.Query(Posts);
+		Cap_Eventquery.matches("Event_Where", cap);
+
+		//Job Location
+		var JobLocationquery = new Parse.Query(Posts);
+		JobLocationquery.matches("Job_Location", searching_for);
+		//Capitalized
+		var Cap_Jobquery = new Parse.Query(Posts);
+		Cap_Jobquery.matches("Job_Location", cap);
+
+		//TODO: Author Name
+
+		var mainQuery = Parse.Query.or(
+			Titlequery, 
+			EventLocationquery, 
+			JobLocationquery, 
+			Cap_Titlequery, 
+			Cap_Jobquery, 
+			Cap_Eventquery,
+			Skillsquery,
+			Cap_Skillsquery
+		);
+		mainQuery.include("Author");
+		mainQuery.find().then(function(results){
+			if (results.length > 0){
+				//Results found
+				for (i = 0; i < results.length; i++) {
+					postIds.push(results[i].id);
+					types.push(results[i].get("Type"));
+					author_first_names.push(results[i].get("Author").get("F_Name"));
+					author_last_names.push(results[i].get("Author").get("L_Name"));
+					titles.push(results[i].get("Title"));
+					created_dates.push(results[i].createdAt);
+					response_counts.push(results[i].get("Responses"));
+					pinned.push(results[i].get("Pinned"));
+				}
+				var text = "<ul class='list'>";
+				for (i = 0; i < types.length; i++) {
+					if(pinned[i] == 0){
+						//Job Posts Color
+						if(types[i] == "Job"){
+							text += "<li class='post_mini job_color_border_mini pointer' id='" + postIds[i] + "'>";
+						}
+						//Event Posts Color
+						if(types[i] == "Event"){
+							text += "<li class='post_mini event_color_border_mini pointer' id='" + postIds[i] + "'>";
+						}
+						//Resource Posts Color
+						if(types[i] == "Resource"){
+							text += "<li class='post_mini resource_color_border_mini pointer' id='" + postIds[i] + "'>";
+						}
+						//Question Posts Color
+						if(types[i] == "Question"){
+							text += "<li class='post_mini question_color_border_mini pointer' id='" + postIds[i] + "'>";
+						}
+								text += "<div class='orderTime' style='display:none'>" + convertSeconds(created_dates[i]) + "</div>";
+								text += "<div>";
+									text += "<span class='post_mini_date mini'>" + moment(created_dates[i]).fromNow() + "</span>";
+								text += "</div>";
+								text += "<span class='post_mini_title mini'>" + titles[i] + "</span>";
+								text += "<br>";
+								text += "<span class='post_mini_count mini'>" + response_counts[i] + " Responses</span>";
+							text += "</li>";
+					}
+				}
+				text += "</ul>";
+				$('.all_others_container').html(text);
+				//Pinned posts are in a separate function so that orderAble does not affect them.
+				var text = "<ul class='list'>";
+				for (i = 0; i < types.length; i++) {
+					if(pinned[i] == 1){
+						//Job Posts Color
+						if(types[i] == "Job"){
+							text += "<li class='post_mini job_color_border_mini pinned_bg_job pointer' id='" + postIds[i] + "'>";
+						}
+						//Event Posts Color
+						if(types[i] == "Event"){
+							text += "<li class='post_mini event_color_border_mini pinned_bg_event pointer' id='" + postIds[i] + "'>";
+						}
+						//Resource Posts Color
+						if(types[i] == "Resource"){
+							text += "<li class='post_mini resource_color_border_mini pinned_bg_resource pointer' id='" + postIds[i] + "'>";
+						}
+						//Question Posts Color
+						if(types[i] == "Question"){
+							text += "<li class='post_mini question_color_border_mini pinned_bg_question pointer' id='" + postIds[i] + "'>";
+						}
+								text += "<div class='orderTime' style='display:none'>" + convertSeconds(created_dates[i]) + "</div>";
+								text += "<div>";
+									text += "<span class='post_mini_date mini'>" + moment(created_dates[i]).fromNow() + "</span>";
+								text += "</div>";
+								text += "<span class='post_mini_title mini'><i class='fa fa-bell-o'></i> " + titles[i] + "</span>";
+								text += "<br>";
+								text += "<span class='post_mini_count mini'>" + response_counts[i] + " Responses</span>";
+							text += "</li>";
+					}
+				}
+				text += "</ul>";
+				$('.pinned_container').html(text);
+				var options = {
+		    		valueNames: [ 'orderTime', 'post_mini_count' ]
+				};
+				miniFeedList = new List('mini_all', options);
+				miniPinnedList = new List('mini_pinned', options);
+			}else{
+				//No results found
+				var text = "<p class='noResultsAlert'>No Posts Found <i class='fa fa-meh-o fa-1x' style='color:#e2e2e2;'></i></p>";
+				$('.pinned_container').html(text);
+			}
+		});
+	}
+
+	//Callback to find posts
+	findPosts();
+	$('#loader').remove();
+});
+
+//Order By
+function orderByTop(){
+	miniFeedList.sort('post_mini_count', { order: "desc" });
+	miniPinnedList.sort('post_mini_count', { order: "desc" });
+	$('#top a').css('text-decoration', 'none');
+	$('#top_id').css('text-decoration', 'underline');
+}
+function orderByRecent(){
+	miniFeedList.sort('orderTime', { order: "desc" });
+	miniPinnedList.sort('orderTime', { order: "desc" });
+	$('#top a').css('text-decoration', 'none');
+	$('#recent_id').css('text-decoration', 'underline');
+}
+//Sort By
+function sortByAll(){
+	//Show
+	$('.event_color_border_mini').show();
+	$('.job_color_border_mini').show();
+	$('.question_color_border_mini').show();
+	$('.resource_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#all_id').css('text-decoration', 'underline');
+}
+function sortByResources(){
+	//Hide
+	$('.event_color_border_mini').hide();
+	$('.job_color_border_mini').hide();
+	$('.question_color_border_mini').hide();
+	//Show
+	$('.resource_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#resources_id').css('text-decoration', 'underline');
+}
+function sortByQuestions(){
+	//Hide
+	$('.event_color_border_mini').hide();
+	$('.job_color_border_mini').hide();
+	$('.resource_color_border_mini').hide();
+	//Show
+	$('.question_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#questions_id').css('text-decoration', 'underline');
+}
+function sortByJobs(){
+	//Hide
+	$('.event_color_border_mini').hide();
+	$('.question_color_border_mini').hide();
+	$('.resource_color_border_mini').hide();
+	//Show
+	$('.job_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#jobs_id').css('text-decoration', 'underline');
+}
+function sortByEvents(){
+	//Hide
+	$('.resource_color_border_mini').hide();
+	$('.job_color_border_mini').hide();
+	$('.question_color_border_mini').hide();
+	//Show
+	$('.event_color_border_mini').show();
+	//Underline
+	$('#bottom a').css('text-decoration', 'none');
+	$('#events_id').css('text-decoration', 'underline');
+}
+
+//Posts Fit Window
+$( window ).resize(function keepTheFit(){
+	var fit = $('#search_results_container').width();
+	$('.posts').css('width', fit);
+});
+window.setInterval(function keepTheFit(){
+	var fit = $('#search_results_container').width();
+	$('.posts').css('width', fit);
+},1000);
+
+//Clicking sends to user profile
+$(document).on("click", ".directory_user_container" , function() {
+	Ajax("profile.html", this.id);
+});
+
+//Clicking sends to post
+$('body').unbind().on("click", ".post_mini" , function() {
+	console.log(this.id);
+	goToPost(this.id);
+});
+
+</script>

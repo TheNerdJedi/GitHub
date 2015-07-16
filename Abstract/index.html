@@ -1,0 +1,249 @@
+<!--Index.html
+
+	+	Login
+	+	request account
+
+-->
+
+<html>
+<head>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0," /> 
+
+	<!--Parse-->
+	<script src="//www.parsecdn.com/js/parse-1.4.2.min.js"></script>
+
+	<!--JQuery-->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+	<!--Google Fonts-->
+	<link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,300,100,700' rel='stylesheet' type='text/css'>
+
+	<title>Abstract</title>
+	<meta name="description" content="Abstract">
+
+	<!--@POGUE: CREATE CSS HERE-->
+	<style>
+
+		body{
+			background: linear-gradient(to bottom right, #00CCFF, white);
+			text-align: center;
+		}
+
+		#welcomeLogo{
+			font-size: 70px;
+			font-family: ;
+			display: block;
+			text-align: center;
+			height: 20px;
+			color: white;
+			padding-top: 8%;
+		}
+		#loginBox{
+			height: 147px;
+			width: 300px;
+			border-radius: 5px;
+			background-color: white;
+			margin: 0 auto;
+			padding-top:2%;
+			text-align: center;
+		}
+
+		.Container{
+			height: 30px;
+			width: 250px;
+			border-radius: 5px;
+			text-align: center;
+			font-size: 17px;
+			color: #3399FF;
+			margin: 0 auto;
+			margin-top: 10px;
+			background-color: white;
+			border-color: #3399FF;
+			border: 1.5px solid;
+		}
+		.input{
+			
+			width: 250px;
+			color: #3399FF;
+			text-align: center;
+			font-size: 20px;
+			margin: 0 auto;
+			margin-top: 0px;
+			background-color: rgba(0,0,0,0.0);
+			border:0;
+			outline:none;
+		}
+		::webkit-input-placeholder {
+			color: #CACCCC;
+			font-size: 18px;
+
+		}
+		#loginButton{
+			height: 25px;
+			width: 50px;
+			display: block;
+			margin: 0 auto;
+			margin-top: 16px;
+			background-color: #3399FF;
+			color: white;
+			border: none;
+			border-radius: 5px;
+		}
+
+		#forgotPassword{
+			border: none;
+			background-color: #e5e5e5;
+			float: left;
+			background-color: rgba(0,0,0,0.0);
+		}
+
+		#requestNewAccount{
+			border: none;
+			background-color: #e5e5e5;
+			float: right;
+			background-color: rgba(0,0,0,0.0);
+		}
+		.footerPopUps{
+			margin-right: auto;
+			margin-left: auto;
+			height:200px;
+   			width:250px;
+    		border-radius:5px;
+    		display: inline-block;
+    		text-align: center;
+    		vertical-align: middle;
+    		background-color: white;
+    		margin-top: 10px;
+    		display: none;
+		}
+
+		#footer{
+			position: fixed;
+			bottom: 0;
+			width: 100%;
+			color: white;
+		}
+		#footer ul li{
+			display: inline;
+			text-align: center;
+		}
+		ul#footerList{
+			padding-left: 0px;
+			padding-right: 25px;
+			/*Did this to center footer - AP */
+		}
+
+	</style>
+
+</head>
+
+<!--@POGUE: HERE IS THE HTML-->
+<body>
+
+<form onsubmit="_logmein(event)">
+	<p id = "welcomeLogo">Abstract</p>
+
+	<div id="loginBox">
+		
+		<div class ="Container">
+			<label for="loginUsername"></label>
+			<input type="text" class="input" placeholder="Username" id="loginUsername">
+		</div>
+
+		<div class ="Container">
+			<label for="loginPassword"></label>
+			<input type="password" class="input" placeholder="Password" id="loginPassword">
+		</div>
+
+		<button type="submit" id="loginButton">Login!</button>
+
+		<button id="forgotPassword">Forgot Password?</button>
+
+		<button id="requestNewAccount">Request New Account</button>
+	</div>
+
+	<div id="aboutPopUp" class="footerPopUps">
+		<h4>About</h4>
+		<p>We are to change the world</p>
+	</div>
+
+	<div id="teamPopUp" class="footerPopUps">
+		<h4>Team</h4>
+		<ul>
+			<li>William Holley</li>
+			<li>Sushant Ahuja</li>
+			<li>Sameep Mohta</li>
+			<li>Andrew Pogue</li>
+		</ul>
+	</div>
+
+	<div id="privacyPopUp" class="footerPopUps">
+		<h4>Privacy</h4>
+		<p>We will not steal your stuff</p>
+	</div>
+
+	<div id="termsAndConditionsPopUp" class="footerPopUps">
+		<h4>Terms and Conditions</h4>
+		<p>Clicking this will seal your fate</p>
+	</div>
+	<div id ="footer"> 
+		<ul id="footerList">
+			<li> <a class="popUpBox" onclick="aboutPopUp()">About</a></li>
+			<li><a class="popUpBox" onclick="teamPopUp()">Team</li>
+			<li><a class="popUpBox" onclick="privacyPopUp()">Privacy</li>
+			<li><a class="popUpBox" onclick="termsAndConditionsPopUp()">Terms and Conditions</li>
+		</ul>
+	</div>
+</form>
+
+</body>
+
+<!--@POGUE: HERE IS THE JAVASCRIPT-->
+<script>
+function aboutPopUp(){
+	$('.footerPopUps').hide();
+	$('#aboutPopUp').fadeIn(1000);
+}
+function teamPopUp(){
+	$('.footerPopUps').hide();
+	$('#teamPopUp').fadeIn(1000);
+}
+function privacyPopUp(){
+	$('.footerPopUps').hide();
+	$('#privacyPopUp').fadeIn(1000);
+}
+function termsAndConditionsPopUp(){
+	$('.footerPopUps').hide();
+	$('#termsAndConditionsPopUp').fadeIn(1000);
+}
+//If User is already logged in
+//Bring user to main.html
+$(document).ready(function checkStatus(){
+	Parse.initialize("ZyuBO9FvD4ck1jdDcDjfx8c0ktptHeid7kn07SMt", "WyXKhdQ7z34qsz2QacMVjpiTIPEr037OwIfW2PPy");
+	if (Parse.User.current()){
+		window.location.href = 'main.html';
+	}
+});
+
+function _logmein(event){
+	Parse.initialize("ZyuBO9FvD4ck1jdDcDjfx8c0ktptHeid7kn07SMt", "WyXKhdQ7z34qsz2QacMVjpiTIPEr037OwIfW2PPy");
+	event.preventDefault();
+
+	var loginusername = $('#loginUsername').val();
+	var loginpassword = $('#loginPassword').val();
+	console.log(loginpassword);
+
+	Parse.User.logIn(loginusername, loginpassword, {
+  		success: function(user) {
+    		var currentUser = Parse.User.current();
+            if(currentUser) window.location = 'main.html';
+  		},
+  		error: function(user, error) {
+    		alert(error.message);
+  		}
+	});
+}
+
+</script>
+</html>

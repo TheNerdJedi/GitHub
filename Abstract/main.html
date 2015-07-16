@@ -1,0 +1,448 @@
+<!--MAIN.HTML
+
+	The Navigational File for the Left Column
+	+	"Main Column"
+	+	"Nav Column"
+	+	TBD
+
+-->
+
+<html>
+<head>
+
+	<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' /> 
+
+	<!--Parse-->
+	<script src="//www.parsecdn.com/js/parse-1.4.2.min.js"></script>
+
+	<!--JQuery-->
+	<script src="js/jquery-2.1.4.min.js"></script>
+
+	<!--Cal-->
+	<link rel='stylesheet' href='css/fullcalendar.css' />
+	<script src='js/moment.min.js'></script>
+	<script src='js/fullcalendar.js'></script>
+
+	<!--List.js-->
+	<script src="js/list.min.js"></script>
+
+	<!--Google maps.js-->
+	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places"></script>
+
+	<!--FontAwesome Icons-->
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+	<!--ChartJS-->
+	<script src="js/Chart.min.js"></script>
+
+	<!--Embed.ly-->
+  	<script src="js/jquery.embedly.min.js" type="text/javascript"></script>
+	
+	<!--Local CSS & JS Files-->
+	<link href='css/app.css' rel='stylesheet' type='text/css'>
+	<script type="text/Javascript" src="js/nav.js"></script>
+
+	<!--Google Fonts-->
+	<link href='http://fonts.googleapis.com/css?family=Lato:100,300,400,700' rel='stylesheet' type='text/css'>
+
+	<title>Abstract</title>
+	<meta name="description" content="Abstract">
+
+</head>
+<body>
+
+<!--Navigation-->
+<nav id="nav_container">
+	<header id="nav_header"><a onClick="showFeed()" class="pointer"><h1>Abstract</h1></a></header>
+	<div id="search_container">
+		<input type="text" id="search_input" placeholder="Search">
+		<br>
+		<button type="button" onClick="search()" id="search_button"><i class="fa fa-search fa-1x icon" id='mag' style='width:auto'></i></button>
+	</div>
+	<ul class="nav_buttons">
+		<li id='nav_you'><a onClick="showProfile()" class="pointer">
+			<i class='fa fa-user fa-2x icon topcon'></i>You
+		</a></li>
+		<li id='nav_peers'><a onClick="showDirectory()" class="pointer">
+			<i class='fa fa-users fa-2x icon topcon'></i>Your Peers
+		</a></li>
+		<li id='nav_cal'><a onClick="showCalendar()" class="pointer">
+			<i class='fa fa-calendar fa-2x icon topcon'></i>Calendar
+		</a></li>
+		<li id='nav_rooms'><a onClick="showRoomReservations()" class="pointer">
+			<i class='fa fa-building fa-2x icon topcon'></i>Reserve Space
+		</a></li>
+
+		<li id='nav_messenger'><a onClick="showMessenger()" class="pointer">
+			<i class='fa fa-comment fa-2x icon topcon'></i>Messenger
+		</a></li>
+		
+		<li id="create_label"><a style="font-weight:700;">Create</a></li>
+		<li id='nav_resource'><a onClick="postResource()" class="pointer">
+			<i class='fa fa-diamond fa-2x icon' style='color:#00C400'></i>Spotlight
+		</a></li>
+		<li id='nav_event'><a onClick="postEvent()" class="pointer">
+			<i class='fa fa-map-marker fa-2x icon' style='color:#F50000'></i>Event
+		</a></li>
+		<li id='nav_question'><a onClick="postQuestion()" class="pointer">
+			<i class='fa fa-question fa-2x icon' style='color:#F5B400'></i>Question
+		</a></li>
+		<li id='nav_job'><a onClick="postJob()" class="pointer">
+			<i class='fa fa-gears fa-2x icon' style='color:#000CAA'></i>Job
+		</a></li>
+	</ul>
+</nav>
+
+<!--AJAX Loaded Content Here-->
+<div id="content_container">
+	
+</div>
+
+<!--First Time Users will see the welcome container-->
+<div id='welcome_container'>
+	<div id='white_popup'>
+		<div id='popup_info_container'>
+			<h1 style='margin:0;'>Welcome to Abstract</h1>
+			<!--Company Logo Here-->
+			<h3>Built exclusively for</h3><img src='http://techfortworth.org/wp-content/uploads/2013/09/TechFW-Color-270x75.png'/>
+		</div>
+		<div id='button_container'>
+			<a id='start_tour_button' class='pointer'>Let's begin</a>
+		</div>
+	</div>
+</div>
+
+<!--<style>
+	#button_container{
+		margin-top:10px;
+		padding-top:35px;
+		border-top:1px solid #e2e2e2;
+		position:fixed;
+		width:460px;
+	}
+
+	#white_popup li{
+		height:35px;
+		text-align: left;
+	}
+
+	.post_title_new{
+		font-size:100%;
+		font-weight:300;
+		margin-bottom:10px;
+		text-transform: none;
+	}
+
+	#profile_bio_textarea{
+		width:400px;
+		font-size:100%;
+		font-weight:300;
+		height:100px;
+	}
+
+	/*Skills*/
+	#skills_input{
+		font-size: 100%;
+		font-weight: 300;
+		margin: 0px 30px 10px 30px;
+	}
+
+	#skills_list{
+		width:400px;
+		height:60px;
+		padding-left:0;
+		overflow-wrap: break-word;
+		overflow-y: scroll;
+		margin-right:0;
+	}
+
+	#skills_list li{
+		display:inline;
+		height:12px;
+		padding-right:10px;
+	}
+
+	/*Interests*/
+	#interests_input{
+		font-size: 100%;
+		font-weight: 300;
+		margin: 0px 30px 10px 30px;
+	}
+
+	#interests_list{
+		width:400px;
+		height:60px;
+		padding-left:0;
+		overflow-wrap: break-word;
+		overflow-y: scroll;
+		margin-right:0;
+	}
+
+	#interests_list li{
+		display:inline;
+		height:12px;
+		padding-right:10px;
+	}
+
+</style>-->
+
+<script>
+
+var fileUploadControl;
+var new_password;
+var position1_added;
+var position2_added;
+var bio_added;
+var skills_added = [];
+var interests_added = [];
+var twitter_added;
+var linkedin_added;
+var website_added;
+var skype_added;
+var photo;
+var name;
+var file;
+
+//User Can Press Enter To Search
+$('#search_input').keypress(function(event) {
+	if (event.keyCode == 13) {
+		search();
+	}
+});
+/*
+$(document).ready(function welcome(){
+	var query = new Parse.Query(Parse.User);
+	query.include("Company");
+	query.include("Company2");
+	query.get(currentUserId).then(function (results){
+		//Check to see if the user has logged in before
+		if (results.get("Has_Logged_In") == undefined){
+			$('#welcome_container').show();
+			$('#nav_container').css('-webkit-filter', 'blur(2px)');
+			$('#content_container').css('-webkit-filter', 'blur(2px)');
+
+			$('#start_tour_button').on('click', function createScreen(event){
+				//Creates
+				event.preventDefault();
+				$('#start_tour_button').html('Continue');
+				var text = "<h3>Abstract is an open network to connect and share resources with your fellow entrepeneurs.</h3>";
+				text += "<ul>"
+			   		text += "<li>Share files <i class='fa fa-diamond fa-2x icon' style='color:#00C400'></i></li>";
+			   		text += "<li>Broadcast events <i class='fa fa-map-marker fa-2x icon' style='color:#F50000'></i></li>";
+			   		text += "<li>Ask questions <i class='fa fa-question fa-2x icon' style='color:#F5B400'></i></li>";
+			   		text += "<li>Find new teammates <i class='fa fa-gears fa-2x icon' style='color:#000CAA'></i></li>";
+			   	text += "</ul>";
+			   	$('#white_popup').css('height', 325)
+				$('#popup_info_container').html(text);
+				//END 
+				//START
+				$('#start_tour_button').on('click', function addProfilePicture(event){
+					event.preventDefault();
+					//$('#white_popup').css('height', 260)
+					var text = "<h3>What do you look like?</h3>";
+					text += "<div id='profile_picture_container'>";
+						text += "<div id='profile_picture' style='border: 1px solid #e2e2e2'></div>";
+						text += "<input type='file' id='change_profile_picture' style=display:none;'></input>";
+					text += "</div>";
+					$('#popup_info_container').html(text);
+					$('#profile_picture').html("<i class='fa fa-plus fa-2x icon' style='color:#e2e2e2;float:none;' class='pointer'></i>")
+					$('#profile_picture').on('click', function(){
+						//Display Plus Sign ontop of profile picture
+						$('#change_profile_picture').click();
+						//Preview New Profile Photo
+						function readURL(input) {
+						    if (input.files && input.files[0]) {
+						        var reader = new FileReader();
+						        reader.onload = function (e) {
+						            //Image Cropping
+
+									$('#profile_picture').css("background", "url("+ e.target.result +")");
+						        }
+						        reader.readAsDataURL(input.files[0]);
+						    }
+						}
+						$("#change_profile_picture").change(function displayPreview(){
+						    readURL(this);
+						    $('#profile_picture').html(" ")
+						});
+						
+						//TODO: Crop Photo
+					});
+					//END 
+					//START
+					$('#start_tour_button').on('click', function addPositions(event){
+						event.preventDefault();
+						//Set Photo var
+						fileUploadControl = $("#change_profile_picture")[0];
+						if (fileUploadControl.files.length > 0) {
+							file = fileUploadControl.files[0];
+							name = "photo.jpg";
+							photo = new Parse.File(name, file);
+												}
+						var text = "<h3>What's your position at " + results.get("Company").get("Name") + "?</h3>";
+							text += "<input class='title post_title_new' id='#position1_input' style='width:400px' type='text' required></input>";
+							if (results.get("Company2") != undefined){
+								text += "<h3>What's your position at " + results.get("Company2").get("Name") + "?</h3>";
+								text += "<input class='title post_title_new' id='#position2_input' style='width:400px' type='text'></input>";
+							}
+						$('#popup_info_container').html(text);
+						//END 
+						//START
+						$('#start_tour_button').on('click', function addLinks(event){
+							event.preventDefault();
+							//Set position variables
+							position1_added = $('#position1_input').val();
+							position2_added = $('#position2_input').val();
+							$('#white_popup').css('height', 390)
+							var text = "<h3>Add external connections</h3>";
+								text += "<input class='title post_title_new' id='#twitter_input' style='width:400px' type='text' placeholder='Twitter (optional but recommended)'/>";
+								text += "<input class='title post_title_new' id='#linkedin_input' style='width:400px' type='text' placeholder='LinkedIn (optional but recommended)'/>";
+								text += "<input class='title post_title_new' id='#website_input' style='width:400px' type='text' placeholder='Website (optional but recommended)'/>";
+								text += "<input class='title post_title_new' id='#skype_input' style='width:400px' type='text' placeholder='Skype (optional but recommended)'/>";
+							$('#popup_info_container').html(text);
+							//END 
+							//START
+							$('#start_tour_button').on('click', function addBio(event){
+								event.preventDefault();
+								//Set links variables
+								twitter_added = $('#twitter_input').val();
+								linkedin_added = $('#linkedin_input').val();
+								website_added = $('#website_input').val();
+								skype_added = $('#skype_input').val();
+								$('#white_popup').css('height', 260)
+								var text = "<h3>Tell us about yourself</h3>";
+									text += "<textarea id='profile_bio_textarea'></textarea>";
+								$('#popup_info_container').html(text);
+								//END 
+								//START
+								$('#start_tour_button').on('click', function addSkills(event){
+									event.preventDefault();
+									//set bio var
+									bio_added = $('#profile_bio_textarea').val();
+									var text = "<h3>What are your skills?</h3>";
+									text += "<input class='title post_title_new' id='skills_input' style='width:400px' type='text' placeholder='Press enter to add skill'/>";
+									text += "<ul id='skills_list'></ul>";
+									$('#popup_info_container').html(text);
+									//When user enters skill
+									//display skill below.
+									$('#skills_input').keypress(function (e) {
+								 		var key = e.which;
+								 		if(key == 13 && $(this).val().length > 1) {
+								   			var skill = capitalizeFirstLetter($(this).val());
+								   			var text = "<li class='profile_skill hover_red'>" + skill + "</li>";
+								   			$(text).appendTo('#skills_list');
+								   			$(this).val("");
+								 		}
+									});
+									//Clicking a skill
+									//deletes it from the list
+									$('#skills_list').on('click', '.hover_red', function(){
+										$(this).remove();
+									});
+
+									//END
+									//START
+									$('#start_tour_button').on('click', function addInterests(event){
+										event.preventDefault();
+										//add Skills vars
+										$('.profile_skill').each(function(){skills_added.push($(this).text());});
+										var text = "<h3>What are your interests?</h3>";
+										text += "<input class='title post_title_new' id='interests_input' style='width:400px' type='text' placeholder='Press enter to add interest'/>";
+										text += "<ul id='interests_list'></ul>";
+										$('#popup_info_container').html(text);
+
+										//When user enters Interest
+										//display Interest above.
+										$('#interests_input').keypress(function (e) {
+									 		var key = e.which;
+									 		if(key == 13 && $(this).val().length > 2) {
+									   			var interest = capitalizeFirstLetter($(this).val());
+									   			var text = "<li class='profile_interest hover_red'>" + interest + "</li>";
+									   			$(text).appendTo('#interests_list');
+									   			$(this).val("");
+									 		}
+										});
+
+										//Clicking an interest
+										//deletes it from the list
+										$('#interests_list').on('click', '.hover_red', function(){
+											$(this).remove();
+										});
+										//END
+										//STARTS
+										$('#start_tour_button').on('click', function changePassword(event){
+											event.preventDefault();
+											//set Interests var
+											$('.profile_interest').each(function(){interests_added.push($(this).text());});
+											$('#start_tour_button').html('Welcome');
+											$('#button_container').css('height', 24);
+											$('#white_popup').css('height', 200)
+											var text = "<h3>Enter a new password</h3>";
+												text += "<input class='title post_title_new' id='#password_input' style='width:400px' type='password'></input>";
+											$('#popup_info_container').html(text);
+											//END
+											//STARTS
+											$('#start_tour_button').on('click', function save(event){
+												event.preventDefault();
+												//set Password var
+												new_password = $('#password_input').val();
+												$('#welcome_container').remove();
+												$('#nav_container').css('-webkit-filter', "");
+												$('#content_container').css('-webkit-filter', "");
+
+												//Photo
+												results.set("Photo", photo);
+												//Password	
+												results.set("password", new_password);
+												//Position 1
+												results.set("Position", position1_added);
+
+												//Position 2 (only if user has 2 companies)
+												if (results.get("Company2") != undefined){
+													results.set("Position2", position2_added);
+												}
+												//Bio 
+												results.set("Bio", bio_added);
+
+												//Interests
+												results.set("Interests", interests_added);
+												//Skills
+												results.set("Skills", skills_added);
+												
+												//Links
+												if (twitter_added.length > 0 && twitter_added != undefined){
+													results.set("Twitter", twitter_added);
+												}
+												if (linkedin_added.length > 0 && linkedin_added != undefined){
+													results.set("LinkedIn", linkedin_added);
+												}
+												if (website_added.length > 0 && website_added != undefined){
+													results.set("Website", website_added);	
+												}
+												if (skype_added.length > 0 && skype_added != undefined){
+													results.set("Skype", skype_added);
+												}
+												results.set("Has_Logged_In", 1);
+												results.save(null, {
+													success:function(){
+														console.log('Saved');
+													}
+												});
+											});
+										});
+									});
+								});
+							});
+						});
+					}); 
+				});
+			});
+		}//If Statement
+	});
+});
+*/
+
+</script>
+
+</body>
+</html>

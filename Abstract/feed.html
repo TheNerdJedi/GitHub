@@ -1,0 +1,246 @@
+<!--feed.html-->
+
+<div class="controller">
+<!--Left-->
+	<ul class="controller_left">
+		<li><a class="pointer" onclick="orderByTop()" id="top_id" style="text-decoration:underline;">Top</a></li>
+		<li class="break">|</li>
+		<li><a class="pointer" onclick="orderByRecent()" id="recent_id">Recent</a></li>
+	</ul>
+
+<!--Right-->
+	<ul class="controller_right">
+		<li><a class="pointer" onclick="sortByAll()" id="all_id" style="text-decoration:underline;">All</a></li>
+		<li class="break">|</li>
+		<li><a class="pointer" onclick="sortByResources()" id="resources_id">Spotlights</a></li>
+		<li class="break">|</li>
+		<li><a class="pointer" onclick="sortByQuestions()" id="questions_id">Questions</a></li>
+		<li class="break">|</li>
+		<li><a class="pointer" onclick="sortByJobs()" id="jobs_id">Jobs</a></li>
+		<li class="break">|</li>
+		<li><a class="pointer" onclick="sortByEvents()" id="events_id">Events</a></li>
+	</ul>
+</div>
+
+<div class="loadFeedHere">
+	<!--Pinned Posts Here-->
+	<div class="pinned_container" id="pinned_posts"></div>
+	<!--All Other Posts Here-->
+	<div class="all_others_container" id="regular_posts"></div>
+</div>
+
+<script>
+
+
+//TODO FIX NAV_HEADER BOARDER
+
+var postsList;
+var pinnedList;
+
+//Keep Feed the proper width
+$( window ).resize(function keepTheFit(){
+	var fit = $('#content_container').width();
+	$('.loadFeedHere').css('width', fit);
+});
+window.setInterval(function keepTheFit(){
+	var fit = $('#content_container').width();
+	$('.loadFeedHere').css('width', fit);
+},1000);
+
+function loadPosts(){
+	//Declare Variables
+	var postIds = [];
+	var types = [];
+	var titles = []; 
+	var author_first_names = [];
+	var author_last_names = [];
+	var created_dates = [];
+	var pinned = [];
+	var response_counts = [];
+	var author_ids =[];
+	//Make Parse Connection
+	var Posts = Parse.Object.extend("Posts");
+	var query = new Parse.Query(Posts);
+	query.include("Author");
+	query.descending("Responses");
+	query.find().then(function(results){
+		for (i = 0; i < results.length; i++) {
+			postIds.push(results[i].id);
+			pinned.push(results[i].get("Pinned"));
+			types.push(results[i].get("Type"));
+			author_first_names.push(results[i].get("Author").get("F_Name"));
+			author_last_names.push(results[i].get("Author").get("L_Name"));
+			author_ids.push(results[i].get("Author").id)
+			titles.push(results[i].get("Title"));
+			created_dates.push(results[i].createdAt);
+			response_counts.push(results[i].get("Responses"));
+		}
+	}).then(function display(){
+		var text = "<ul class='list'>";
+		for (i = 0; i < types.length; i++) {
+			if(pinned[i] == 0){
+				//For Job Posts
+				if(types[i] == "Job"){
+					text += "<li class='post job_color_border'>";
+				}
+				//For Event Posts
+				if(types[i] == "Event"){
+					text += "<li class='post event_color_border'>";
+				}
+				//For Resource Posts
+				if(types[i] == "Resource"){
+					text += "<li class='post resource_color_border'>";
+				}
+				//For Question Posts
+				if(types[i] == "Question"){
+					text += "<li class='post question_color_border'>";
+				}
+				text += "<a class='link_container pointer' id='" + postIds[i] + "'>";
+					text += "<div class='orderTime' style='display:none'>" + convertSeconds(created_dates[i]) + "</div>";
+					text += "<div>";
+						text += "<span class='post_date'>" + moment(created_dates[i]).fromNow(); + "</span>";
+					text += "</div>";
+					text += "<span class='post_title'>" + titles[i] + "</span>";
+					text += "<br>";
+					text += "<span class='post_author'><a class='author_link pointer' id='" + author_ids[i] + "'>" + author_first_names[i] + " " + author_last_names[i] + "</a></span>";
+					text += "<br>";
+					text += "<span class='post_count'>" + response_counts[i] + " Responses</span>";
+				text += "</a>";
+				text += "</li>";
+			}
+		}
+		text += "</ul>";
+		$('.all_others_container').html(text);
+	}).then(function pinnedPosts(){
+		//Pinned posts are in a separate function so that orderAble does not affect them.
+		var text = "<ul class='list'>";
+		for (i = 0; i < types.length; i++) {
+			if(pinned[i] == 1){
+				//For Job Posts
+				if(types[i] == "Job"){
+					text += "<li class='post job_color_border pinned_bg_job'>";
+				}
+				//For Event Posts
+				if(types[i] == "Event"){
+					text += "<li class='post event_color_border pinned_bg_event'>";
+				}
+				//For Resource Posts
+				if(types[i] == "Resource"){
+					text += "<li class='post resource_color_border pinned_bg_resource'>";
+				}
+				//For Question Posts
+				if(types[i] == "Question"){
+					text += "<li class='post question_color_border pinned_bg_question'>";
+				}
+				text += "<a class='link_container pointer' id='" + postIds[i] + "'>";
+					text += "<div class='orderTime' style='display:none'>" + convertSeconds(created_dates[i]) + "</div>";
+					text += "<div>";
+						text += "<span class='post_date'>" + moment(created_dates[i]).fromNow() + "</span>";
+					text += "</div>";
+					text += "<span class='post_title'><i class='fa fa-bell-o'></i> " + titles[i] + "</span>";
+					text += "<br>";
+					text += "<span class='post_author'><a class='author_link pointer' id='" + author_ids[i] + "'>" + author_first_names[i] + " " + author_last_names[i] + "</a></span>";
+					text += "<br>";
+					text += "<span class='post_count'>" + response_counts[i] + " Responses</span>";
+				text += "</a>";
+				text += "</li>";
+			}
+		}
+		text += "</ul>";
+		$('.pinned_container').html(text);
+	}).then(function orderAble(){
+		var options = {
+    		valueNames: [ 'orderTime', 'post_count' ]
+		};
+		postsList = new List('regular_posts', options);
+		pinnedList = new List('pinned_posts', options);
+	});
+}
+
+//Load Feed Posts
+$(document).ready(loadPosts());
+
+function orderByTop(){
+	postsList.sort('post_count', { order: "desc" });
+	pinnedList.sort('post_count', { order: "desc" });
+	$('.controller_left a').css('text-decoration', 'none');
+	$('#top_id').css('text-decoration', 'underline');
+}
+
+function orderByRecent(){
+	postsList.sort('orderTime', { order: "desc" });
+	pinnedList.sort('orderTime', { order: "desc" });
+	$('.controller_left a').css('text-decoration', 'none');
+	$('#recent_id').css('text-decoration', 'underline');
+}
+
+//Sort By
+function sortByAll(){
+	sortBy = "All";
+	//Shows
+	$('.event_color_border').show();
+	$('.job_color_border').show();
+	$('.question_color_border').show();
+	$('.resource_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#all_id').css('text-decoration', 'underline');
+};
+function sortByResources(){
+	sortBy = "Resources";
+	//Hide
+	$('.event_color_border').hide();
+	$('.job_color_border').hide();
+	$('.question_color_border').hide();
+	//Show
+	$('.resource_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#resources_id').css('text-decoration', 'underline');
+};
+function sortByQuestions(){
+	sortBy = "Questions";
+	//Hide
+	$('.event_color_border').hide();
+	$('.job_color_border').hide();
+	$('.resource_color_border').hide();
+	//Show
+	$('.question_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#questions_id').css('text-decoration', 'underline');
+};
+function sortByJobs(){
+	sortBy = "Jobs";
+	//Hide
+	$('.event_color_border').hide();
+	$('.question_color_border').hide();
+	$('.resource_color_border').hide();
+	//Show
+	$('.job_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#jobs_id').css('text-decoration', 'underline');
+};
+function sortByEvents(){
+	sortBy = "Events";
+	//Hide
+	$('.resource_color_border').hide();
+	$('.job_color_border').hide();
+	$('.question_color_border').hide();
+	//Show
+	$('.event_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#events_id').css('text-decoration', 'underline');
+};
+
+//Clicking Post brings to post
+$(document).on("click", ".link_container" , function() {
+	goToPost(this.id);
+});
+$(document).on("click", ".author_link" , function() {
+	Ajax("profile.html", this.id);
+});
+
+</script>

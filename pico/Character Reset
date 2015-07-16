@@ -1,0 +1,10 @@
+ if(input.GetKeyDown(varKeyInput)
+ {
+  Application.LoadLevel (Level);
+ }
+ 
+ 
+ 
+ //Either one of the above mentioned suggestions should work. 
+ With (varKeyInput) you would have to go into your inspector 
+ window and add the "R" Key to the Inspector variable.

@@ -1,0 +1,831 @@
+<!--Load User's Stories Here-->
+<div class="center_column">
+	<div class="controller"  id="profileController">
+	<!--Left-->
+		<ul class="controller_left">
+			<li><a class="pointer" onclick="orderByTop()" id="top_id" style="text-decoration:underline;">Top</a></li>
+			<li class="break">|</li>
+			<li><a class="pointer" onclick="orderByRecent()" id="recent_id">Recent</a></li>
+		</ul>
+
+	<!--Right-->
+		<ul class="controller_right">
+			<li><a class="pointer" onclick="sortByAll()" id="all_id" style="text-decoration:underline;">All</a></li>
+			<li class="break">|</li>
+			<li><a class="pointer" onclick="sortByResources()" id="resources_id">Spotlights</a></li>
+			<li class="break">|</li>
+			<li><a class="pointer" onclick="sortByQuestions()" id="questions_id">Questions</a></li>
+			<li class="break">|</li>
+			<li><a class="pointer" onclick="sortByJobs()" id="jobs_id">Jobs</a></li>
+			<li class="break">|</li>
+			<li><a class="pointer" onclick="sortByEvents()" id="events_id">Events</a></li>
+		</ul>
+	</div>
+
+	<div class="loadProfFeedHere">
+		<!--Pinned Posts Here-->
+		<div class="pinned_container" id="pinned_posts"></div>
+		<!--All Other Posts Here-->
+		<div class="all_others_container" id="regular_posts"></div>
+	</div>
+</div>
+
+<!--Load Profile Here-->
+<div class="right_column">
+	<div id="profile_picture_container">
+		<div id="profile_picture"></div>
+		<input type="file" id="change_profile_picture" style="display:none"/>
+	</div>
+	<div id="name"></div>
+	<!--These scroll down while name stays fixed-->
+	<div class="scrollable">
+		<div id="position1" class="position"></div>
+		<div id="company1" class="company pointer"></div>
+		<div id="position2" class="position"></div>
+		<div id="company2" class="company pointer"></div>
+		<div id='personal_info_container'>
+			<input class='position_label link_input' type='password' placeholder='New Password' id='password_input' value=''/>
+			<input class='position_label link_input' type='email' placeholder='Email' id='email_input' value=''/>
+		</div>
+		<div id="links_container">
+			<ul>
+				<li><a href="" id="website" target="_blank"><i class='fa fa-home fa-2x icon'></i></a></li>
+				<li><a href="" id="twitter" target="_blank"><i class='fa fa-twitter fa-2x icon'></i></a></li>
+				<li><a href="" id="linkedin" target="_blank"><i class='fa fa-linkedin fa-2x icon'></i></a></li>
+				<li><a href="" id="skype" target="_blank"><i class='fa fa-skype fa-2x icon'></i></a></li>
+			</ul>
+		</div>
+		<div id="bio"></div>
+		<div id="skills_container">
+			<h3 class="profile_label" id="skills_label">Skills</h3>
+			<ul id='skills_list'></ul>
+		</div>
+			
+		<div id="interests_container">
+			<h3 class="profile_label" id="interests_label">Interests</h3>
+			<ul id='interests_list'></ul>
+		</div>
+
+		<div id="edit_trigger">
+			<a onclick="editProfile()" class="pointer">Edit Profile</a>
+		</div>
+	</div>
+</div>
+
+<script>
+var currentUserId = Parse.User.current().id;
+var profileId;
+
+var first_name;
+var last_name;
+var company1;
+var company2;
+var company1_position;
+var company2_position;
+var bio;
+var photo;
+var twitter;
+var website;
+var linkedin;
+var skype;
+var blog;
+var skills = [];
+var interests = [];
+var email;
+
+var company1ID;
+var company2ID;
+
+var existant_bio;
+var pos1_text;
+var pos2_text;
+
+//Keep Feed the proper width
+$( window ).resize(function keepTheFit(){
+	var fit = $('.center_column').width();
+	$('.loadProfFeedHere').css('width', fit);
+});
+window.setInterval(function keepTheFit(){
+	var fit = $('.center_column').width();
+	$('.loadProfFeedHere').css('width', fit);
+},1000);
+
+function loadPosts(profileId){
+	//Declare Variables
+	var postIds = [];
+	var types = [];
+	var titles = []; 
+	var author_first_names = [];
+	var author_last_names = [];
+	var created_dates = [];
+	var pinned = [];
+	var response_counts = [];
+	var page_views = [];
+	var author_ids =[];
+	//Make Parse Connection
+	var Posts = Parse.Object.extend("Posts");
+	var query = new Parse.Query(Posts);
+	query.include("Author");
+	query.descending("Responses");
+	query.equalTo("Author", {
+        __type: "Pointer",
+        className: "_User",
+        objectId: profileId
+    });
+	query.find().then(function(results){
+		for (i = 0; i < results.length; i++) {
+			postIds.push(results[i].id);
+			pinned.push(results[i].get("Pinned"));
+			types.push(results[i].get("Type"));
+			author_first_names.push(results[i].get("Author").get("F_Name"));
+			author_last_names.push(results[i].get("Author").get("L_Name"));
+			author_ids.push(results[i].get("Author").id)
+			titles.push(results[i].get("Title"));
+			created_dates.push(results[i].createdAt);
+			response_counts.push(results[i].get("Responses"));
+			page_views.push(results[i].get("Page_Views"));
+		}
+	}).then(function display(){
+		var text = "<ul class='list'>";
+		for (i = 0; i < types.length; i++) {
+			if(pinned[i] == 0){
+				//For Job Posts
+				if(types[i] == "Job"){
+					text += "<li class='post job_color_border'>";
+				}
+				//For Event Posts
+				if(types[i] == "Event"){
+					text += "<li class='post event_color_border'>";
+				}
+				//For Resource Posts
+				if(types[i] == "Resource"){
+					text += "<li class='post resource_color_border'>";
+				}
+				//For Question Posts
+				if(types[i] == "Question"){
+					text += "<li class='post question_color_border'>";
+				}
+				text += "<a class='link_container pointer' id='" + postIds[i] + "'>";
+					text += "<div class='orderTime' style='display:none'>" + convertSeconds(created_dates[i]) + "</div>";
+					text += "<div>";
+						text += "<span class='post_date'>" + moment(created_dates[i]).fromNow() + "</span>";
+					text += "</div>";
+					text += "<span class='post_title'>" + titles[i] + "</span>";
+					text += "<br>";
+					text += "<span class='post_count link_container pointer'>" + response_counts[i] + " Responses</span>";
+				text += "</a>";
+				text += "</li>";
+			}
+		}
+		text += "</ul>";
+		$('.all_others_container').html(text);
+	}).then(function pinnedPosts(){
+		//Pinned posts are in a separate function so that orderAble does not affect them.
+		var text = "<ul class='list'>";
+		for (i = 0; i < types.length; i++) {
+			if(pinned[i] == 1){
+				//For Job Posts
+				if(types[i] == "Job"){
+					text += "<li class='post job_color_border pinned_bg_job'>";
+				}
+				//For Event Posts
+				if(types[i] == "Event"){
+					text += "<li class='post event_color_border pinned_bg_event'>";
+				}
+				//For Resource Posts
+				if(types[i] == "Resource"){
+					text += "<li class='post resource_color_border pinned_bg_resource'>";
+				}
+				//For Question Posts
+				if(types[i] == "Question"){
+					text += "<li class='post question_color_border pinned_bg_question'>";
+				}
+				text += "<a class='link_container pointer' id='" + postIds[i] + "'>";
+					text += "<div class='orderTime' style='display:none'>" + convertSeconds(created_dates[i]) + "</div>";
+					text += "<div>";
+						text += "<span class='post_date'>" + moment(created_dates[i]).fromNow() + "</span>";
+					text += "</div>";
+					text += "<span class='post_title'><i class='fa fa-bell-o'></i> " + titles[i] + "</span>";
+					text += "<br>";
+					text += "<span class='post_count link_container pointer'>" + response_counts[i] + " Responses</span>";
+				text += "</a>";
+				text += "</li>";
+			}
+		}
+		text += "</ul>";
+		$('.pinned_container').html(text);
+	}).then(function orderAble(){
+		var options = {
+    		valueNames: [ 'orderTime', 'post_count' ]
+		};
+		postsList = new List('regular_posts', options);
+		pinnedList = new List('pinned_posts', options);
+	});
+}
+
+function loadProfile(profileId){
+	//Unset Social Links to avoid existant
+	delete twitter;
+	delete linkedin;
+	delete website;
+	delete skype;
+	//Query for user info
+	var query = new Parse.Query(Parse.User);
+	query.include("Company");
+	query.include("Company2");
+	query.get(profileId).then(function(results){
+
+		//First Name
+		first_name = results.get("F_Name");
+
+		//Last Name
+		last_name = results.get("L_Name");
+
+		//Email
+		email = results.get("email");
+
+		//Display Full Name
+		$('#name').html(first_name + " " + last_name);
+
+		//Company Name
+		company1 = results.get("Company").get("Name");
+		$('#company1').html(company1);
+		var company1ID = results.get("Company").id;
+		//Click Handler, redirects to profile_company.html
+		$('#company1').click(function x(e){
+			e.preventDefault();
+			goToCompany(company1ID);
+		});
+		//Check for second company
+		if (results.has("Company2")){
+			company2 = results.get("Company2").get("Name");
+			$('#company2').html(company2);
+			var company2ID = results.get("Company2").id;
+			//Click Handler, redirects to profile_company.html
+			$('#company2').click(function x(e){
+				e.preventDefault();
+				goToCompany(company2ID);
+			});
+		}else{
+			$('#company2').hide();
+		}
+		//Check for position
+		if (results.has("Position")){
+			company1_position = results.get("Position");
+			$('#position1').html(company1_position);
+		}else{
+			$('#position1').hide();
+			$('#company1').css('padding-top', 10)
+		}
+		//Check for second position
+		if (results.has("Position2")){
+			company2_position = results.get("Position2");
+			$('#position2').html(company2_position);
+		}else{
+			$('#position2').hide();
+			$('#company2').css('padding-top', 10);
+		}
+		//Check for bio
+		if (results.has("Bio")){
+			bio = results.get("Bio");
+			$('#bio').html(bio);
+		}else{
+			$('#bio').hide()
+		}
+
+		//Interests
+		if (results.has("Interests")){
+			interests = results.get("Interests");
+			if (interests.length > 0){
+				for (i = 0; i < interests.length; i++) {
+					var text = "<li class='profile_interest'>" + interests[i] + "</li>";
+   					$(text).appendTo('#interests_list');
+				}
+			}else{
+				$('#interests_container').hide();
+			}
+		}else{
+			$('#interests_container').hide();
+		}
+
+		//Skills
+		if (results.has("Skills")){
+			skills = results.get("Skills");
+			if (skills.length > 0){
+				for (i = 0; i < skills.length; i++) {
+					var text = "<li class='profile_skill'>" + skills[i] + "</li>";
+   					$(text).appendTo('#skills_list');
+   				}
+			}else{
+				$('#skills_container').hide();
+			}
+		}else{
+			$('#skills_container').hide();
+		}
+		
+		//Photo
+		//First we will create the canvas 
+		//Second we will check for DB photo
+		//If none exists, we will use placeholder
+
+		if (results.has("Photo")){
+			photo = results.get("Photo").url();
+			$('#profile_picture').css("background", "url("+ photo +")");
+		}else{
+			photo = "img/stock.jpg";
+			$('#profile_picture').css("background", "url("+ photo +")");
+		}
+
+		//Check for Twitter
+		if (results.has("Twitter")){
+			twitter = results.get("Twitter");
+			$('#twitter').attr('href', 'http://www.twitter.com/' + twitter);
+			$('#twitter i').css('color', '#55acee');
+			$('#links_container').show();
+		}else{
+			$('#twitter').parent().hide();
+		}
+
+		//Check for Website
+		if (results.has("Website")){
+			website = results.get("Website");
+			website = formatURL(website);
+			$('#website').attr('href', website);
+			$('#website i').css('color', '#565a5c');  
+			$('#links_container').show();
+		}else{
+			$('#website').parent().hide();
+		}
+
+		//Check for Linkedin
+		if (results.has("LinkedIn")){
+			linkedin = results.get("LinkedIn");
+			$('#linkedin').attr('href', 'https://www.linkedin.com/profile/view?id=' + linkedin);
+			$('#linkedin i').css('color', '#0077b5');
+			$('#links_container').show();
+		}else{
+			$('#linkedin').parent().hide();
+		}
+
+		//Check for Skype
+		if (results.has("Skype")){
+			skype = results.get("Skype");
+			$('#skype').attr('href', 'skype:profile_name?' + skype);
+			$('#skype i').css('color', '#00aff0');
+			$('#links_container').show();
+		}else{
+			$('#skype').parent().hide();
+		}
+	});
+
+	//If Profile belongs to 
+	//current user, make editable
+	if(profileId == currentUserId){
+		$('#edit_trigger').show();
+	}
+}
+
+function editProfile(){
+	//Change Text
+	$('#edit_trigger a').text("Save")
+	$('#edit_trigger a').attr('onclick', 'saveProfileEdits()');
+	$('#edit_trigger').append("<a onclick='cancelEdits()' class='pointer' id='cancelButton'>Cancel</a>");
+
+	//Display Email + Password Chang Container
+	$('#personal_info_container').show();
+	$('#email_input').attr("placeholder", email);
+
+	//Display Position 1
+	pos1_text = $('#position1.position').text();
+	var added = "<input class='position_label' placeholder='Position' id='position1_input' value=''/><br>";
+	$('#position1').html(added);
+	if ($('#position1').is(':hidden')){
+		$('#position1').show();
+		$('#company1').css('padding-top', 0)
+	}else{
+		//Display the current position as Placeholder
+		$('#position1_input').attr("placeholder", pos1_text);
+	}
+
+	//Display Position 2
+	//Only if user has company 2
+	pos2_text = $('#position2.position').text();
+	var added = "<input class='position_label' placeholder='Position' id='position2_input' value=''/><br>";
+	$('#position2').html(added);
+	if ($('#company2').is(':visible')){
+		if ($('#position2').is(':hidden')){
+			$('#position2').show();
+			$('#company2').css('padding-top', 0)
+
+			//Edit
+		}else{
+			//Display the current position as Placeholder
+			$('#position2_input').attr("placeholder", pos2_text);
+		}
+	}
+
+	//Add Ability to delete existant skills & interests
+	$('.profile_skill').addClass('hover_red');
+	$('.profile_interest').addClass('hover_red');
+	
+	//Display Skills
+	var added = "<input placeholder='Click Enter to add' id='skills_input' value=''/>";
+	$('#skills_container').append(added);
+	if ($('#skills_container').is(':hidden')){
+		//There are current no skills
+		$('#skills_container').show();
+		//Edit
+	}else{
+		//There are currently skills
+	}
+
+	//When user enters skill
+	//display skill above.
+	$('#skills_input').keypress(function (e) {
+ 		var key = e.which;
+ 		if(key == 13 && $(this).val().length > 1) {
+   			var skill = capitalizeFirstLetter($(this).val());
+   			var text = "<li class='profile_skill hover_red'>" + skill + "</li>";
+   			$(text).appendTo('#skills_list');
+   			$(this).val("");
+ 		}
+	});
+
+	//Clicking a skill
+	//deletes it from the list
+	$('#skills_list').on('click', '.hover_red', function(){
+		$(this).remove();
+	});
+
+
+	//Display Interests
+	var added = "<input placeholder='Click Enter to add' id='interests_input' value=''/>";
+	$('#interests_container').append(added);
+	if ($('#interests_container').is(':hidden')){
+		//There are current no interests
+		$('#interests_container').show();
+		//Edit
+	}else{
+		//There are currently interests
+	}
+
+	//When user enters Interest
+	//display Interest above.
+	$('#interests_input').keypress(function (e) {
+ 		var key = e.which;
+ 		if(key == 13 && $(this).val().length > 2) {
+   			var interest = capitalizeFirstLetter($(this).val());
+   			var text = "<li class='profile_interest hover_red'>" + interest + "</li>";
+   			$(text).appendTo('#interests_list');
+   			$(this).val("");
+ 		}
+	});
+
+	//Clicking an interest
+	//deletes it from the list
+	$('#interests_list').on('click', '.hover_red', function(){
+		$(this).remove();
+	});
+
+	//Display Links Container
+	if ($('#links_container').is(':hidden')){
+		$('#links_container').show();
+	}
+
+	//Display All Icons for Links Container
+	$('#twitter').parent().show();
+	$('#linkedin').parent().show();
+	$('#website').parent().show();
+	$('#skype').parent().show();
+
+	//Create Links Inputs
+	var text = "<input placeholder='Twitter @' id='twitter_input' class='link_input' value=''/>";
+		text += "<input placeholder='LinkedIn id#' id='linkedin_input' class='link_input' value=''/>";
+		text += "<input placeholder='Website' id='website_input' class='link_input' value=''/>";
+		text += "<input placeholder='Skype' id='skype_input' class='link_input' value=''/>";
+	$('#links_container').append(text)
+
+	//Show Placeholder if user has already entered their info
+	
+	if (twitter != undefined && twitter.length > 0){
+		$('#twitter_input').attr("placeholder", twitter);
+	}
+	if (linkedin != undefined && linkedin.length > 0){
+		$('#linkedin_input').attr("placeholder", linkedin);
+	}
+	if ( website != undefined && website.length > 0){
+		$('#website_input').attr("placeholder", website);
+	}
+	if (skype != undefined && skype.length > 0){
+		$('#skype_input').attr("placeholder", skype);
+	}
+
+	//Display Bio
+	existant_bio = $('#bio').text();
+	var added = "<textarea id='profile_bio_textarea' placeholder='Bio'></textarea>";
+	$('#bio').html(added);
+	if ($('#bio').is(':hidden')){
+		$('#bio').show();
+		$('#bio').css('margin', 0);
+		//Edit
+	}else{
+		$('#profile_bio_textarea').attr("placeholder", existant_bio);
+	}
+
+	//Bio Resizes on text entry
+	$('#profile_bio_textarea').on( 'keyup', function (e){
+		$(this).css('height', 'auto' );
+		$(this).height( this.scrollHeight );
+	});
+		$('#profile_bio_textarea').keyup();
+
+	//Click Profile Picture to Change Photo
+	$('#profile_picture').html("<i class='fa fa-plus fa-2x icon' style='color:white;float:none;' class='pointer'></i>")
+	$('#profile_picture').on('click', function(){
+		//Display Plus Sign ontop of profile picture
+		$('#change_profile_picture').click();
+		//Preview New Profile Photo
+		function readURL(input) {
+		    if (input.files && input.files[0]) {
+		        var reader = new FileReader();
+		        reader.onload = function (e) {
+		            //Image Cropping
+
+					$('#profile_picture').css("background", "url("+ e.target.result +")");
+		        }
+		        reader.readAsDataURL(input.files[0]);
+		    }
+		}
+		$("#change_profile_picture").change(function displayPreview(){
+		    readURL(this);
+		    $('#profile_picture').html(" ")
+		});
+		//TODO: Crop Photo
+	});
+}
+
+//Cancel Button
+function cancelEdits(){
+	Ajax("profile.html", currentUserId);
+}
+
+//========================
+//Finished Editing
+//Function to Save Profile
+
+function saveProfileEdits(){
+
+	//Set Variables
+	//Photo
+	var fileUploadControl = $("#change_profile_picture")[0];
+	if (fileUploadControl.files.length > 0) {
+  		var file = fileUploadControl.files[0];
+  		var name = "photo.jpg";
+  		var photo = new Parse.File(name, file);
+	}
+
+	//Email & Password
+	var email_added = $('#email_input').val();
+	var new_password = $('#password_input').val();
+	
+	//Positions
+	var position1_added = $('#position1_input').val();
+	var position2_added = $('#position2_input').val();
+	//Bio
+	var bio_added = $('#profile_bio_textarea').val().replace(/\n/g, '<br/>');
+	//Skills
+	var skills_added = [];
+	$('.profile_skill').each(function(){skills_added.push($(this).text());});
+	//Interests
+	var interests_added = []
+	$('.profile_interest').each(function(){interests_added.push($(this).text());});
+	//Links
+	var twitter_added = $('#twitter_input').val();
+	var linkedin_added = $('#linkedin_input').val();
+	var website_added = $('#website_input').val();
+	var skype_added = $('#skype_input').val();
+
+	//save new info
+	var query = new Parse.Query(Parse.User);
+	query.get(profileId).then(function(results){
+		results.set("Photo", photo);
+		//Email
+		if (email_added.length > 0 && email_added != undefined){
+			results.set("email", email_added);
+		}
+		//Password
+		if (new_password.length > 0 && new_password != undefined){
+			results.set("password", new_password);
+		}
+		//Position 1
+		if (position1_added.length > 0 && position1_added != undefined){
+			results.set("Position", position1_added);
+		}
+		//Position 2
+		if (position2_added.length > 0 && position2_added != undefined){
+			results.set("Position2", position2_added);
+		}
+		//Bio
+		if (bio_added.length > 0 && bio_added != undefined){
+			results.set("Bio", bio_added);
+		}
+		//Interests
+		results.set("Interests", interests_added);
+		//Skills
+		results.set("Skills", skills_added);
+		//Links
+		if (twitter_added.length > 0 && twitter_added != undefined){
+			results.set("Twitter", twitter_added);
+		}
+		if (linkedin_added.length > 0 && linkedin_added != undefined){
+			results.set("LinkedIn", linkedin_added);
+		}
+		if (website_added.length > 0 && website_added != undefined){
+			results.set("Website", website_added);	
+		}
+		if (skype_added.length > 0 && skype_added != undefined){
+			results.set("Skype", skype_added);
+		}
+
+		results.save();
+	}).then(function update(){
+		//Remove Inputs
+		$('#personal_info_container').hide();
+		$('#position1_input').remove();
+		$('#position2_input').remove();
+		$('#twitter_input').remove();
+		$('#linkedin_input').remove();
+		$('#website_input').remove();
+		$('#skype_input').remove();
+		$('#profile_bio_textarea').remove();
+		$('#skills_input').remove();
+		$('#interests_input').remove();
+		$('#profile_picture').html(" ")
+
+		$('.profile_skill').removeClass('hover_red');
+		$('.profile_interest').removeClass('hover_red');
+
+		//Update
+		//Bio
+		if (bio_added != undefined && bio_added.length > 0){
+			$('#bio').html(bio_added);
+		}else{
+			$('#bio').html(existant_bio);
+		}
+		//Positions
+		if (position1_added != undefined && position1_added.length > 0){
+			$('#position1').html(position1_added);
+		}else{
+			$('#position1').html(pos1_text);
+		}
+		if (position2_added != undefined && position2_added.length > 0){
+			$('#position2').html(position2_added);
+		}else{
+			$('#position2').html(pos2_text);
+		}
+		//Links
+		if (twitter_added != undefined && twitter_added.length > 0){
+			$('#twitter').attr('href', 'http://www.twitter.com/' + twitter_added);
+			$('#twitter i').css('color', '#55acee');
+		}else{
+			//Check for pre-existant
+			if ($('#twitter').attr('href').length < 1){
+				$('#twitter').parent().hide();
+			}
+		}
+		if (website_added != undefined && website_added.length > 0){
+			$('#website').attr('href', website_added);
+			$('#website i').css('color', '#565a5c');  
+		}else{
+			//Check for pre-existant
+			if ($('#website').attr('href').length < 1){
+				$('#website').parent().hide();
+			}
+		}
+		if (linkedin_added != undefined && linkedin_added.length > 0){
+			$('#linkedin').attr('href', 'https://www.linkedin.com/profile/view?id=' + linkedin_added);
+			$('#linkedin i').css('color', '#0077b5');
+		}else{
+			//Check for pre-existant
+			if ($('#linkedin').attr('href').length < 1){
+				$('#linkedin').parent().hide();
+			}
+		}
+		if (skype_added != undefined && skype_added.length > 0){
+			$('#skype').attr('href', 'skype:profile_name?' + skype_added);
+			$('#skype i').css('color', '#00aff0');
+		}else{
+			//Check for pre-existant
+			if ($('#skype').attr('href').length < 1){
+				$('#skype').parent().hide();
+			}
+		}
+
+		if ($('#twitter').parent().is(":hidden") && $('#linkedin').parent().is(":hidden") && $('#website').parent().is(":hidden") && $('#skype').parent().is(":hidden")){
+			$('#links_container').hide();
+		}
+
+		//Return to normal w/ updated information
+		$('#cancelButton').remove();
+		$('#edit_trigger a').text("Edit Profile");
+		$('#edit_trigger a').attr('onclick', 'editProfile()');
+		
+		/*if (new_password.length > 0 && new_password != undefined){
+			alert('You changed your password, please log in again!');
+			Parse.User.logOut();
+			window.location.href = 'index.html';
+		}*/
+		
+	});
+}
+
+
+function orderByTop(){
+	postsList.sort('post_count', { order: "desc" });
+	pinnedList.sort('post_count', { order: "desc" });
+	$('.controller_left a').css('text-decoration', 'none');
+	$('#top_id').css('text-decoration', 'underline');
+}
+
+function orderByRecent(){
+	postsList.sort('orderTime', { order: "desc" });
+	pinnedList.sort('orderTime', { order: "desc" });
+	$('.controller_left a').css('text-decoration', 'none');
+	$('#recent_id').css('text-decoration', 'underline');
+}
+
+//Sort By
+function sortByAll(){
+	sortBy = "All";
+	//Shows
+	$('.event_color_border').show();
+	$('.job_color_border').show();
+	$('.question_color_border').show();
+	$('.resource_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#all_id').css('text-decoration', 'underline');
+};
+function sortByResources(){
+	sortBy = "Resources";
+	//Hide
+	$('.event_color_border').hide();
+	$('.job_color_border').hide();
+	$('.question_color_border').hide();
+	//Show
+	$('.resource_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#resources_id').css('text-decoration', 'underline');
+};
+function sortByQuestions(){
+	sortBy = "Questions";
+	//Hide
+	$('.event_color_border').hide();
+	$('.job_color_border').hide();
+	$('.resource_color_border').hide();
+	//Show
+	$('.question_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#questions_id').css('text-decoration', 'underline');
+};
+function sortByJobs(){
+	sortBy = "Jobs";
+	//Hide
+	$('.event_color_border').hide();
+	$('.question_color_border').hide();
+	$('.resource_color_border').hide();
+	//Show
+	$('.job_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#jobs_id').css('text-decoration', 'underline');
+};
+function sortByEvents(){
+	sortBy = "Events";
+	//Hide
+	$('.resource_color_border').hide();
+	$('.job_color_border').hide();
+	$('.question_color_border').hide();
+	//Show
+	$('.event_color_border').show();
+	//Underline
+	$('.controller_right a').css('text-decoration', 'none');
+	$('#events_id').css('text-decoration', 'underline');
+};
+
+//Clicking Post brings to post
+$(document).on("click", ".link_container" , function() {
+	goToPost(this.id);
+});
+
+$(window).ready(function(){
+	profileId = window.history.state;
+	loadProfile(profileId);
+	console.log(profileId);
+	loadPosts(profileId);
+});
+
+
+</script>

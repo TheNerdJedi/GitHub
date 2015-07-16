@@ -1,0 +1,253 @@
+<script>
+  var eventsArray1=[];//no repetition
+  var eventsArray2=[];//daily
+  var eventsArray3=[];//weekly
+  var eventsArray4=[];//monthly
+  var eventsArray5=[];//yearly
+  var eventsArray6=[];//weekdays
+  function loadEvents(){
+    var eventIds=[];
+    var eventReoccurings=[];
+    var eventStart=[];
+    var eventEnd=[];
+    var eventTitles=[];
+    var Posts=Parse.Object.extend("Posts");
+    var query=new Parse.Query(Posts);
+    query.equalTo("Type", "Event");
+    query.find().then(function(results){
+      for (i=0;i< results.length; i++){
+        eventIds.push(results[i].id);
+        eventReoccurings.push(results[i].get("Event_Reoccuring"));
+        eventStart.push(results[i].get("Event_Start"));
+        eventEnd.push(results[i].get("Event_End"));
+        eventTitles.push(results[i].get("Title"));
+      }
+      for(i=0;i<results.length;i++){
+        var eventStartDate=eventStart[i].split('T')[0];
+        var y=parseInt(eventStartDate.split('-')[0]);
+        var m=parseInt(eventStartDate.split('-')[1]);
+        var mth=m;   //duplicate value of month for monthly recurring of the events
+        var yr=y;   //duplicate value of year for yearly recurring of the events
+        var d=parseInt(eventStartDate.split('-')[2]);
+
+        var eventEndDate=eventEnd[i].split('T')[0];
+        var y1=parseInt(eventEndDate.split('-')[0]);
+        var m1=parseInt(eventEndDate.split('-')[1]);
+        var mth1=m1;   //duplicate value of month for monthly recurring of the events
+        var yr1=y1;   //duplicate value of year for yearly recurring of the events
+        var d1=parseInt(eventEndDate.split('-')[2]);
+
+        var t=[0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4]
+        y -= m < 3;
+        y1 -= m1 < 3;
+        var daynumber_start=parseInt(( y + y/4 - y/100 + y/400 + t[m-1] + d) % 7);
+        var daynumber_end=parseInt(( y1 + y1/4 - y1/100 + y1/400 + t[m1-1] + d1) % 7);
+        if(eventReoccurings[i]==""){
+          eventsArray1.push({
+            id: eventIds[i],
+            title: eventTitles[i],
+            start: eventStart[i],
+            end: eventEnd[i],
+            url: eventIds[i]
+          });
+        }
+        if(eventReoccurings[i]=="Daily"){
+          eventsArray2.push({
+            id: eventIds[i],
+            title: eventTitles[i],
+            start: eventStart[i],
+            end: eventEnd[i],
+            dow: [0,1,2,3,4,5,6],
+            url: eventIds[i]
+          });
+        }
+        if(eventReoccurings[i]=="Weekdays"){
+          eventsArray6.push({
+            id: eventIds[i],
+            title: eventTitles[i],
+            start: eventStart[i],
+            end: eventEnd[i],
+            dow: [1,2,3,4,5],
+            url: eventIds[i]
+          });
+        }
+        if(eventReoccurings[i]=="Weekly"){
+          var no_weeks=(13-m)*4;
+          var date1=d;
+          var month1=m;
+          var y_start=y;
+          var date12=d1;
+          var month12=m1;
+          var y_end=y1;
+          for(var j=0;j<=no_weeks;j++){
+            var no_days_start = new Date(y_start, month1, 0).getDate();
+            var no_days_end = new Date(y_end, month12, 0).getDate();
+            var eventStartarray=eventStart[i].split('T');
+            if(date1<=9 && month1<=9){
+              var eventStartnew=y_start+'-'+'0'+month1+'-'+'0'+date1+'T'+eventStartarray[1];
+            }
+            if(date1>=10 && month1<=9){
+              var eventStartnew=y_start+'-'+'0'+month1+'-'+date1+'T'+eventStartarray[1];
+            }
+            if(date1<=9 && month1>=10){
+              var eventStartnew=y_start+'-'+month1+'-'+'0'+date1+'T'+eventStartarray[1];
+            }
+            if(date1>=10 && month1>=10){
+              var eventStartnew=y_start+'-'+month1+'-'+date1+'T'+eventStartarray[1];
+            }
+
+            var eventEndarray=eventEnd[i].split('T');
+            if(date12<=9 && month12<=9){
+              var eventEndnew=y_end+'-'+'0'+month12+'-'+'0'+date12+'T'+eventEndarray[1];
+            }
+            if(date12>=10 && month12<=9){
+              var eventEndnew=y_end+'-'+'0'+month12+'-'+date12+'T'+eventEndarray[1];
+            }
+            if(date12<=9 && month12>=10){
+              var eventEndnew=y_end+'-'+month12+'-'+'0'+date12+'T'+eventEndarray[1];
+            }
+            if(date12>=10 && month12>=10){
+              var eventEndnew=y_end+'-'+month12+'-'+date12+'T'+eventEndarray[1];
+            }
+            for(var k=0;k<7;k++){
+              date1++;
+              if(date1>no_days_start){
+                date1=1;
+                month1=(month1+1)%13;
+                if(month1==0){
+                  y_start++;
+                  month1=1;
+                }
+              }
+              daynumber_start=(daynumber_start+1)%7;
+            }
+            for(var l=0;l<7;l++){
+              date12++;
+              if(date12>no_days_end){
+                date12=1;
+                month12=(month12+1)%13;
+                if(month12==0){
+                  y_end++;
+                  month12=1;
+                }
+              }
+              daynumber_end=(daynumber_end+1)%7;
+            }
+            eventsArray3.push({
+              id: eventIds[i],
+              title: eventTitles[i],
+              start: eventStartnew,
+              end: eventEndnew,
+              url: eventIds[i]
+            });
+          }
+        }
+        if(eventReoccurings[i]=="Monthly"){
+          var mth_dup=mth;
+          var mth1_dup=mth1;
+          var year_flag=0;
+          var year_flag1=0;
+          for(var j=1;j<=25-mth_dup;j++){
+            var eventStartarray=eventStart[i].split('-');
+            var eventEndarray=eventEnd[i].split('-');
+            if(mth<=9){
+              mth='0'+mth;
+            }
+            if(mth1<=9){
+              mth1='0'+mth1;
+            }
+            var year_monthly=eventStartarray[0];
+            var year_monthly1=eventEndarray[0];
+            if(year_flag==1){
+              year_monthly=parseInt(year_monthly)+1;
+            }
+            if(year_flag1==1){
+              year_monthly1=parseInt(year_monthly1)+1;
+            }
+            var eventStartnew=year_monthly+'-'+mth+'-'+eventStartarray[2];
+            var eventEndnew=year_monthly1+'-'+mth1+'-'+eventEndarray[2];
+            mth=parseInt(mth);
+            mth1=parseInt(mth1);
+            eventsArray4.push({
+              id: eventIds[i],
+              title: eventTitles[i],
+              start: eventStartnew,
+              end: eventEndnew,
+              url: eventIds[i]
+            });
+            if(mth==12){
+              mth=0;
+              year_flag=1;
+            }
+            if(mth1==12){
+              mth1=0;
+              year_flag1=1;
+            }
+            mth++;
+            mth1++;
+          }
+        }
+        if(eventReoccurings[i]=="Yearly"){
+          for(var j=0;j<5;j++){
+            var eventStartarray=eventStart[i].split('-');
+            var eventStartnew=yr+'-'+eventStartarray[1]+'-'+eventStartarray[2];
+            var eventEndarray=eventEnd[i].split('-');
+            var eventEndnew=yr+'-'+eventEndarray[1]+'-'+eventEndarray[2];
+            eventsArray5.push({
+              id: eventIds[i],
+              title: eventTitles[i],
+              start: eventStartnew,
+              end: eventEndnew,
+              url: eventIds[i]
+            });
+            yr++;
+          }
+        }
+      }
+
+      $('#calendar').fullCalendar({
+        height: $(window).height(),
+        header: {
+
+          left:  'month, agendaWeek, agendaDay', // buttons for switching between views
+          center: 'title',
+          right:  'today prevYear,prev,next,nextYear',
+          editable: true,
+          defaultView: 'month',
+          allDayDefault: false,
+        },
+        eventClick: function(event,calEvent, jsEvent, view) {
+          if (event.url) {
+              goToPost(event.url);
+              return false;
+          }
+        }
+      });//closure fullCalendar
+      //line breaks after month, week and today views
+      $("<div class='linebreak'> | </div>").insertAfter('.fc-month-button');
+      $("<div class='linebreak'> | </div>").insertAfter('.fc-agendaweek-button');
+      //$("<div class='linebreak'> | </div>").insertAfter('.fc-today-button');
+      $('#calendar').fullCalendar( 'addEventSource', eventsArray1);
+      $('#calendar').fullCalendar( 'addEventSource', eventsArray2);
+      $('#calendar').fullCalendar( 'addEventSource', eventsArray3);
+      $('#calendar').fullCalendar( 'addEventSource', eventsArray4);
+      $('#calendar').fullCalendar( 'addEventSource', eventsArray5);
+      $('#calendar').fullCalendar( 'addEventSource', eventsArray6);
+    });//closure function(results)
+  }//closure loadEvents
+
+  $(document).ready(function(){
+    loadEvents(); 
+});
+
+//Resize Cal on Window Resize
+$( window ).resize(function reSizeCal(){
+  $('#calendar').fullCalendar('option', 'height',  $(window).height());
+});
+
+
+$(document).on("click", ".event_container" , function() {
+    goToPost(this.id);
+});
+</script>
+<div id='calendar'></div>

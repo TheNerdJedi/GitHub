@@ -1,0 +1,1 @@
+your/blender/path/belnder -b blendertemplate.blend --python-text pythontextname
